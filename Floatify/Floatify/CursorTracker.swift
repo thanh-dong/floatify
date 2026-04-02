@@ -8,7 +8,7 @@ final class CursorTracker {
     private var lastPosition: CGPoint = .zero
     private var smoothedPosition: CGPoint = .zero
 
-    var smoothingFactor: CGFloat = 0.15
+    var smoothingFactor: CGFloat = 0.8
     var edgePadding: CGFloat = 20
 
     var currentPosition: CGPoint {
@@ -35,9 +35,7 @@ final class CursorTracker {
     }
 
     private func handleMouseMove(_ event: NSEvent) {
-        let rawPosition = event.locationInWindow
-        let screenHeight = NSScreen.main?.frame.height ?? 0
-        lastPosition = CGPoint(x: rawPosition.x, y: screenHeight - rawPosition.y)
+        lastPosition = NSEvent.mouseLocation
         smoothedPosition = interpolate(from: smoothedPosition, to: lastPosition, factor: smoothingFactor)
     }
 
