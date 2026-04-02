@@ -1,0 +1,396 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0F220237F68BB335FAACF2E4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80FABD64CC2AB3A7B7C000DC /* main.swift */; };
+		3FDECEC56F61445657E65D3F /* FloatNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DACC97B72E843D8F308AB3E /* FloatNotificationView.swift */; };
+		60EA7C7065C2955E6CFCCBD0 /* Corner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64F6A91E7F736FCB8819CA6F /* Corner.swift */; };
+		C95C6817E7C45A90A43FE657 /* FloatNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2C9FF9FF7D99C1C4BEB05A0 /* FloatNotificationManager.swift */; };
+		F0CD4B564D1ECAA6D9FBF60A /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0CFF7F45B818C87EFDF510 /* main.swift */; };
+		F2C2CF84F2AF4D6427BC1600 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63DAD4239E10639F6510535 /* AppDelegate.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		25D941D613F9F9ABA10A4BA7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BAB3750650B0459D07BE79ED /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7ADCF5B42B329578AE70968F;
+			remoteInfo = floatify;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		04830C59EC2F08805CED8332 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4DACC97B72E843D8F308AB3E /* FloatNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatNotificationView.swift; sourceTree = "<group>"; };
+		64F6A91E7F736FCB8819CA6F /* Corner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Corner.swift; sourceTree = "<group>"; };
+		696097BA1731283FE8A7584F /* Floatify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Floatify.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7D0CFF7F45B818C87EFDF510 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		80FABD64CC2AB3A7B7C000DC /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		889D2E95327A399171312B59 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B0FB1358410034C55CF7BF79 /* floatify */ = {isa = PBXFileReference; includeInIndex = 0; path = floatify; sourceTree = BUILT_PRODUCTS_DIR; };
+		C2C9FF9FF7D99C1C4BEB05A0 /* FloatNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatNotificationManager.swift; sourceTree = "<group>"; };
+		D63DAD4239E10639F6510535 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		37A2BBC9F04EC4B583915000 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B0FB1358410034C55CF7BF79 /* floatify */,
+				696097BA1731283FE8A7584F /* Floatify.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		688110CEE6DF412BC5AC24C6 /* cli */ = {
+			isa = PBXGroup;
+			children = (
+				04830C59EC2F08805CED8332 /* Info.plist */,
+				7D0CFF7F45B818C87EFDF510 /* main.swift */,
+			);
+			name = cli;
+			path = Floatify/cli;
+			sourceTree = "<group>";
+		};
+		751DFE3A98D80BAF157667D1 = {
+			isa = PBXGroup;
+			children = (
+				688110CEE6DF412BC5AC24C6 /* cli */,
+				A3A235D9D57C050153F3037B /* Floatify */,
+				37A2BBC9F04EC4B583915000 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A3A235D9D57C050153F3037B /* Floatify */ = {
+			isa = PBXGroup;
+			children = (
+				D63DAD4239E10639F6510535 /* AppDelegate.swift */,
+				64F6A91E7F736FCB8819CA6F /* Corner.swift */,
+				C2C9FF9FF7D99C1C4BEB05A0 /* FloatNotificationManager.swift */,
+				4DACC97B72E843D8F308AB3E /* FloatNotificationView.swift */,
+				889D2E95327A399171312B59 /* Info.plist */,
+				80FABD64CC2AB3A7B7C000DC /* main.swift */,
+			);
+			path = Floatify;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7ADCF5B42B329578AE70968F /* floatify */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4A6165BB599144AFF6FDF76C /* Build configuration list for PBXNativeTarget "floatify" */;
+			buildPhases = (
+				B1F8A1F38355660BA95982CE /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = floatify;
+			packageProductDependencies = (
+			);
+			productName = floatify;
+			productReference = B0FB1358410034C55CF7BF79 /* floatify */;
+			productType = "com.apple.product-type.tool";
+		};
+		8679BC14733EB04B5108C057 /* Floatify */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0A8038578C0DC5908F6D0165 /* Build configuration list for PBXNativeTarget "Floatify" */;
+			buildPhases = (
+				2FD410FA59565145EC6878AF /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5E83E33DA7C3647CFD67309A /* PBXTargetDependency */,
+			);
+			name = Floatify;
+			packageProductDependencies = (
+			);
+			productName = Floatify;
+			productReference = 696097BA1731283FE8A7584F /* Floatify.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BAB3750650B0459D07BE79ED /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					7ADCF5B42B329578AE70968F = {
+						ProvisioningStyle = Automatic;
+					};
+					8679BC14733EB04B5108C057 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 4A5A61AEA0BAA0F58B987CA7 /* Build configuration list for PBXProject "Floatify" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 751DFE3A98D80BAF157667D1;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 37A2BBC9F04EC4B583915000 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8679BC14733EB04B5108C057 /* Floatify */,
+				7ADCF5B42B329578AE70968F /* floatify */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2FD410FA59565145EC6878AF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F2C2CF84F2AF4D6427BC1600 /* AppDelegate.swift in Sources */,
+				60EA7C7065C2955E6CFCCBD0 /* Corner.swift in Sources */,
+				C95C6817E7C45A90A43FE657 /* FloatNotificationManager.swift in Sources */,
+				3FDECEC56F61445657E65D3F /* FloatNotificationView.swift in Sources */,
+				0F220237F68BB335FAACF2E4 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B1F8A1F38355660BA95982CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F0CD4B564D1ECAA6D9FBF60A /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5E83E33DA7C3647CFD67309A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7ADCF5B42B329578AE70968F /* floatify */;
+			targetProxy = 25D941D613F9F9ABA10A4BA7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		212B8B6356CB67B45943EF8B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Floatify/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.floatify.app;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		29A5360308CCA9E8A28A4DD6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Floatify/cli/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.floatify.cli;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		463640069F356AD734CADA6C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		584E996B18EE4673A274F2D5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		71D8A515F8B1B72E0619B4AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Floatify/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.floatify.app;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		DE4A0F263245B89429E2CEB6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Floatify/cli/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.floatify.cli;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0A8038578C0DC5908F6D0165 /* Build configuration list for PBXNativeTarget "Floatify" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				71D8A515F8B1B72E0619B4AB /* Debug */,
+				212B8B6356CB67B45943EF8B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4A5A61AEA0BAA0F58B987CA7 /* Build configuration list for PBXProject "Floatify" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				584E996B18EE4673A274F2D5 /* Debug */,
+				463640069F356AD734CADA6C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4A6165BB599144AFF6FDF76C /* Build configuration list for PBXNativeTarget "floatify" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				29A5360308CCA9E8A28A4DD6 /* Debug */,
+				DE4A0F263245B89429E2CEB6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BAB3750650B0459D07BE79ED /* Project object */;
+}

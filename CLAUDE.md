@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**DuckNotify** — A macOS menu bar daemon that renders animated duck notifications in screen dead zones (bottom-left/bottom-right corners), triggered by Claude Code hooks.
+**Floatify** — A macOS menu bar daemon that renders animated floating notifications in screen dead zones (bottom-left/bottom-right corners), triggered by Claude Code hooks.
 
 Two components:
-- **DuckNotify.app** — Background GUI app (LSUIElement, no Dock icon) owning a floating NSPanel overlay
-- **duck-notify CLI** — Sends messages to the app via CFMessagePort IPC
+- **Floatify.app** — Background GUI app (LSUIElement, no Dock icon) owning a floating NSPanel overlay
+- **floatify CLI** — Sends messages to the app via FIFO pipe IPC
 
 ## Build Commands
 
@@ -17,22 +17,22 @@ Two components:
 cd DuckNotify && xcodegen generate
 
 # Build the app
-xcodebuild -project DuckNotify.xcodeproj -scheme DuckNotify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
+xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
 
 # Build just the CLI
-xcodebuild -project DuckNotify.xcodeproj -scheme duck-notify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
+xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
 ```
 
 ## Architecture
 
 ```
-Claude Code hooks → duck-notify CLI → CFMessagePort IPC → DuckNotify.app → NSPanel overlay
+Claude Code hooks → floatify CLI → FIFO pipe IPC → Floatify.app → NSPanel overlay
 ```
 
 **Key technical decisions:**
-- CFMessagePort for sub-ms IPC (no network permissions needed)
+- FIFO pipe for sub-ms IPC (no network permissions needed)
 - NSPanel with `.nonactivatingPanel` to avoid stealing keyboard focus
-- `NSScreen.visibleFrame` for automatic Dock/Menubar exclusion
+- `NSScreen.frame` for absolute positioning at screen edges
 - `.popUpMenu` level floats above all apps including fullscreen windows
 - Max 3 stacked panels with 4px vertical offset
 
@@ -41,19 +41,21 @@ Claude Code hooks → duck-notify CLI → CFMessagePort IPC → DuckNotify.app �
 ```
 DuckNotify/
 ├── project.yml              # XcodeGen config
-├── DuckNotify/              # macOS App target
-│   ├── AppDelegate.swift    # CFMessagePort server + menu bar + symlink install
-│   ├── DuckNotificationManager.swift  # NSPanel factory + stacking
-│   ├── DuckNotificationView.swift    # SwiftUI notification view
-│   ├── Corner.swift         # Corner enum
-│   └── Info.plist           # LSUIElement = true
-└── duck-notify/             # Command Line Tool target
-    └── main.swift           # Argument parser + CFMessagePort client
+├── Floatify.xcodeproj/     # Xcode project
+├── Floatify/               # macOS App target
+│   ├── AppDelegate.swift   # FIFO pipe server + menu bar + symlink install
+│   ├── FloatNotificationManager.swift  # NSPanel factory + stacking
+│   ├── FloatNotificationView.swift      # SwiftUI notification view
+│   ├── Corner.swift        # Corner enum
+│   ├── main.swift          # App entry point
+│   ├── cli/                # Command Line Tool target
+│   │   └── main.swift     # Argument parser + FIFO pipe client
+│   └── Info.plist          # LSUIElement = true
 ```
 
 ## IPC Protocol
 
-**Port name:** `com.yourname.duck-notify`
+**Pipe path:** `/var/tmp/floatify.pipe`
 
 **JSON payload:**
 ```json
@@ -73,14 +75,14 @@ Add to `~/.claude/settings.json`:
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "duck-notify --message '🦆 Claude is waiting for your next prompt' --corner bottomRight --duration 10"
+        "command": "floatify --message 'Floatify is waiting' --corner bottomRight --duration 10"
       }]
     }],
     "PostToolUse": [{
       "matcher": "Bash",
       "hooks": [{
         "type": "command",
-        "command": "duck-notify --message 'Bash task done ✓' --corner bottomLeft --duration 5"
+        "command": "floatify --message 'Bash task done' --corner bottomLeft --duration 5"
       }]
     }]
   }

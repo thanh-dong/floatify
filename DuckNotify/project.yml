@@ -1,6 +1,6 @@
-name: DuckNotify
+name: Floatify
 options:
-  bundleIdPrefix: com.ducknotify
+  bundleIdPrefix: com.floatify
   deploymentTarget:
     macOS: "13.0"
   xcodeVersion: "15.0"
@@ -11,40 +11,40 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "13.0"
 
 targets:
-  DuckNotify:
+  Floatify:
     type: application
     platform: macOS
     sources:
-      - path: DuckNotify
+      - path: Floatify
         excludes:
           - "**/.DS_Store"
+          - "cli/**"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.ducknotify.app
-        INFOPLIST_FILE: DuckNotify/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.floatify.app
+        INFOPLIST_FILE: Floatify/Info.plist
         CODE_SIGN_STYLE: Automatic
         COMBINE_HIDPI_IMAGES: YES
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         ENABLE_HARDENED_RUNTIME: YES
     dependencies:
-      - target: duck-notify
-        embed: true
-        codeSign: true
+      - target: floatify
+        embed: false
         copy:
           destination: resources
           subpath: ""
 
-  duck-notify:
+  floatify:
     type: tool
     platform: macOS
     sources:
-      - path: duck-notify
+      - path: Floatify/cli
         excludes:
           - "**/.DS_Store"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.ducknotify.cli
-        INFOPLIST_FILE: duck-notify/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.floatify.cli
+        INFOPLIST_FILE: Floatify/cli/Info.plist
         CODE_SIGN_STYLE: Automatic
         SKIP_INSTALL: YES
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"

@@ -1,6 +1,6 @@
-# DuckNotify
+# Floatify
 
-A lightweight macOS menu bar daemon that renders animated duck notifications in screen dead zones.
+A lightweight macOS menu bar daemon that renders animated floating notifications in screen dead zones.
 
 ## Installation
 
@@ -8,12 +8,12 @@ A lightweight macOS menu bar daemon that renders animated duck notifications in 
    ```bash
    cd DuckNotify
    xcodegen generate
-   xcodebuild -project DuckNotify.xcodeproj -scheme DuckNotify -configuration Release build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
+   xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Release build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
    ```
 
 2. Open the built app:
    ```bash
-   open ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/DuckNotify.app
+   open ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/Floatify.app
    ```
 
 3. Approve the CLI symlink prompt when it appears.
@@ -30,7 +30,7 @@ Add to `~/.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "duck-notify --message 'Duck is waiting' --corner bottomRight --duration 10"
+            "command": "floatify --message 'Floatify is waiting' --corner bottomRight --duration 10"
           }
         ]
       }
@@ -41,7 +41,7 @@ Add to `~/.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "duck-notify --message 'Bash done' --corner bottomLeft --duration 5"
+            "command": "floatify --message 'Bash done' --corner bottomLeft --duration 5"
           }
         ]
       }
@@ -53,7 +53,7 @@ Add to `~/.claude/settings.json`:
 ## CLI Usage
 
 ```bash
-duck-notify --message "Task complete!" --corner bottomRight --duration 6
+floatify --message "Task complete!" --corner bottomRight --duration 6
 ```
 
 | Flag | Description | Default |

@@ -7,7 +7,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let alert = NSAlert()
-        alert.messageText = "DuckNotify Started"
+        alert.messageText = "Floatify Started"
         alert.informativeText = "The app has started successfully"
         alert.runModal()
 
@@ -29,12 +29,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         testItem.target = self
         menu.addItem(testItem)
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit DuckNotify", action: #selector(quit), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit Floatify", action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu
     }
 
     @objc private func testNotification() {
-        DuckNotificationManager.shared.show(message: "Test notification! 🦆", corner: .bottomRight, duration: 5)
+        FloatNotificationManager.shared.show(message: "Test notification! 🦆", corner: .bottomRight, duration: 5)
     }
 
     @objc private func quit() {
@@ -43,25 +43,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Pipe Listener
 
-    private let pipePath = "/var/tmp/duck-notify.pipe"
+    private let pipePath = "/var/tmp/floatify.pipe"
 
     private func setupPipeListener() {
-        NSLog("DuckNotify: Setting up pipe at %@", pipePath)
+        NSLog("Floatify: Setting up pipe at %@", pipePath)
 
         // Create pipe if it doesn't exist
         if !FileManager.default.fileExists(atPath: pipePath) {
             let result = mkfifo(pipePath, 0o666)
-            NSLog("DuckNotify: mkfifo result: %d, errno: %d", result, errno)
+            NSLog("Floatify: mkfifo result: %d, errno: %d", result, errno)
         }
 
         // Remove existing pipe to avoid stale state
         try? FileManager.default.removeItem(atPath: pipePath)
         let mkresult = mkfifo(pipePath, 0o666)
-        NSLog("DuckNotify: mkfifo second call result: %d, errno: %d", mkresult, errno)
+        NSLog("Floatify: mkfifo second call result: %d, errno: %d", mkresult, errno)
 
         // Open pipe for reading
         let pipeFd = open(pipePath, O_RDONLY | O_NONBLOCK)
-        NSLog("DuckNotify: pipeFd: %d, errno: %d", pipeFd, errno)
+        NSLog("Floatify: pipeFd: %d, errno: %d", pipeFd, errno)
         guard pipeFd >= 0 else {
             print("Failed to open pipe at \(pipePath)")
             return
@@ -92,7 +92,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let duration = json["duration"] as? TimeInterval ?? 6.0
 
         DispatchQueue.main.async {
-            DuckNotificationManager.shared.show(message: message, corner: corner, duration: duration)
+            FloatNotificationManager.shared.show(message: message, corner: corner, duration: duration)
         }
     }
 
@@ -103,8 +103,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard !defaults.bool(forKey: "CLISymlinkInstalled") else { return }
 
         let alert = NSAlert()
-        alert.messageText = "Install duck-notify CLI?"
-        alert.informativeText = "DuckNotify needs to create a symlink at /usr/local/bin/duck-notify so Claude Code can trigger notifications. This requires administrator privileges."
+        alert.messageText = "Install floatify CLI?"
+        alert.informativeText = "Floatify needs to create a symlink at /usr/local/bin/floatify so Claude Code can trigger notifications. This requires administrator privileges."
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Install")
         alert.addButton(withTitle: "Skip")
@@ -112,23 +112,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let response = alert.runModal()
         guard response == .alertFirstButtonReturn else { return }
 
-        let src = Bundle.main.url(forResource: "duck-notify", withExtension: nil)
+        let src = Bundle.main.url(forResource: "floatify", withExtension: nil)
         guard let srcURL = src else {
-            print("duck-notify binary not found in app bundle")
+            print("floatify binary not found in app bundle")
             return
         }
 
-        let dest = URL(fileURLWithPath: "/usr/local/bin/duck-notify")
+        let dest = URL(fileURLWithPath: "/usr/local/bin/floatify")
         try? FileManager.default.removeItem(at: dest)
 
         do {
             try FileManager.default.createSymbolicLink(at: dest, withDestinationURL: srcURL)
             defaults.set(true, forKey: "CLISymlinkInstalled")
-            print("Installed duck-notify to /usr/local/bin/")
+            print("Installed floatify to /usr/local/bin/")
         } catch {
             let permAlert = NSAlert()
             permAlert.messageText = "Permission denied"
-            permAlert.informativeText = "Could not create /usr/local/bin/duck-notify. Run: sudo ln -s \(srcURL.path) /usr/local/bin/duck-notify"
+            permAlert.informativeText = "Could not create /usr/local/bin/floatify. Run: sudo ln -s \(srcURL.path) /usr/local/bin/floatify"
             permAlert.alertStyle = .warning
             permAlert.runModal()
         }

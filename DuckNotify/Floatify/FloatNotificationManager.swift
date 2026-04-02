@@ -2,9 +2,9 @@ import AppKit
 import SwiftUI
 import os.log
 
-// MARK: - DuckPanel
+// MARK: - FloatPanel
 
-class DuckPanel: NSPanel {
+class FloatPanel: NSPanel {
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
 
@@ -13,14 +13,14 @@ class DuckPanel: NSPanel {
     }
 }
 
-// MARK: - DuckNotificationManager
+// MARK: - FloatNotificationManager
 
-class DuckNotificationManager {
-    static let shared = DuckNotificationManager()
-    private var panels: [DuckPanel] = []
+class FloatNotificationManager {
+    static let shared = FloatNotificationManager()
+    private var panels: [FloatPanel] = []
     private let maxPanels = 3
     private let stackOffset: CGFloat = 4
-    private let log = OSLog(subsystem: "com.ducknotify", category: "panel")
+    private let log = OSLog(subsystem: "com.floatify", category: "panel")
 
     private init() {}
 
@@ -40,7 +40,7 @@ class DuckNotificationManager {
         let stackOffsetY = CGFloat(panels.count) * stackOffset
         let origin = cornerOrigin(corner: corner, size: size, stackOffset: stackOffsetY)
 
-        let panel = DuckPanel(
+        let panel = FloatPanel(
             contentRect: NSRect(origin: origin, size: size),
             styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
             backing: .buffered,
@@ -54,7 +54,7 @@ class DuckNotificationManager {
         panel.hasShadow = false
         panel.ignoresMouseEvents = false
 
-        let view = DuckNotificationView(message: message) { [weak self, weak panel] in
+        let view = FloatNotificationView(message: message) { [weak self, weak panel] in
             guard let panel = panel else { return }
             self?.dismiss(panel: panel)
         }
@@ -68,7 +68,7 @@ class DuckNotificationManager {
         }
     }
 
-    private func dismiss(panel: DuckPanel) {
+    private func dismiss(panel: FloatPanel) {
         panel.orderOut(nil)
         panels.removeAll { $0 === panel }
         repositionPanels()

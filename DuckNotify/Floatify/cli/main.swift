@@ -40,7 +40,7 @@ guard Double(duration) != nil else {
 
 // MARK: - Write to Pipe
 
-let pipePath = "/var/tmp/duck-notify.pipe"
+let pipePath = "/var/tmp/floatify.pipe"
 
 let payload: [String: Any] = [
     "message":  message,
@@ -59,7 +59,7 @@ if pipeFd < 0 {
     if errno == EACCES || errno == EPERM {
         fputs("🦆 Permission denied - check app permissions\n", stderr)
     } else {
-        fputs("🦆 DuckNotify.app is not running\n", stderr)
+        fputs("🦆 Floatify.app is not running\n", stderr)
     }
     exit(1)
 }

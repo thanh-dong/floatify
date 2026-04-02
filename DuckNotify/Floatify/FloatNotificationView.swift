@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct DuckNotificationView: View {
+struct FloatNotificationView: View {
     let message: String
     var onTap: (() -> Void)?
 
