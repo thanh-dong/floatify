@@ -2,13 +2,14 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Extend Floatify from 2 corner positions to 7 position types with per-position animations, visual effects, and sound effects.
+**Goal:** Extend Floatify from 2 corner positions to 8 position types with per-position animations, visual effects, sound effects, and cursor-following.
 
 **Architecture:**
-- Extend `Corner` enum with 7 position types (bottomLeft, bottomRight, topLeft, topRight, center, menubar, horizontal)
+- Extend `Corner` enum with 8 position types (bottomLeft, bottomRight, topLeft, topRight, center, menubar, horizontal, cursorFollow)
 - Add `FloatEffects` system for particle sparkles, glow pulse, ripple, shimmer, cascade effects
 - Add `SoundManager` for per-position audio playback with silent mode respect
 - Horizontal stacking managed by `HorizontalStackManager` tracking horizontal panel offsets
+- Cursor tracking via `CursorTracker` using global mouse event monitoring
 - Each position maps to a default entry animation and visual effect
 
 **Tech Stack:** Swift 5.9+, AppKit (NSPanel, NSVisualEffectView), SwiftUI (for effect overlays), AVFoundation (audio)
@@ -24,6 +25,7 @@
 | `Floatify/FloatNotificationView.swift` | Per-position animations, effect overlays |
 | `Floatify/FloatEffects.swift` | Particle system, glow, ripple, shimmer renderers |
 | `Floatify/SoundManager.swift` | Audio playback, volume, silent mode |
+| `Floatify/CursorTracker.swift` | Global mouse tracking for cursorFollow |
 | `Floatify/AppDelegate.swift` | Sound file loading |
 | `Floatify/cli/main.swift` | Parse new corner values |
 
@@ -57,6 +59,9 @@ enum Corner {
     // Horizontal stacking mode
     case horizontal
 
+    // Cursor-following mode
+    case cursorFollow
+
     var defaultEffect: NotificationEffect {
         switch self {
         case .bottomLeft, .bottomRight: return .ripple
@@ -64,6 +69,7 @@ enum Corner {
         case .center: return .glow
         case .menubar: return .shimmer
         case .horizontal: return .cascade
+        case .cursorFollow: return .trail
         }
     }
 
@@ -75,6 +81,7 @@ enum Corner {
         case .center: return "alert_center.wav"
         case .menubar: return "whisper.wav"
         case .horizontal: return "cascade.wav"
+        case .cursorFollow: return "ping.wav"
         }
     }
 }
@@ -85,6 +92,7 @@ enum NotificationEffect {
     case ripple
     case shimmer
     case cascade
+    case trail
 }
 ```
 
@@ -92,7 +100,7 @@ enum NotificationEffect {
 
 ```bash
 git add Floatify/Floatify/Corner.swift
-git commit -m "feat: extend Corner enum with 7 position types and effects"
+git commit -m "feat: extend Corner enum with 8 position types and effects"
 ```
 
 ---
@@ -289,7 +297,8 @@ class SoundManager {
             "chime_top.wav",
             "alert_center.wav",
             "whisper.wav",
-            "cascade.wav"
+            "cascade.wav",
+            "ping.wav"
         ]
 
         for name in soundFiles {
@@ -351,7 +360,118 @@ git commit -m "feat: add SoundManager for per-position audio playback"
 
 ---
 
-## Task 4: Update FloatNotificationView with Animations and Effects
+## Task 4: Create CursorTracker
+
+**Files:**
+- Create: `Floatify/Floatify/CursorTracker.swift`
+
+- [ ] **Step 1: Write CursorTracker.swift**
+
+```swift
+import AppKit
+import Combine
+
+class CursorTracker: ObservableObject {
+    static let shared = CursorTracker()
+
+    @Published var cursorPosition: CGPoint = .zero
+    @Published var isTracking: Bool = false
+
+    private var globalMonitor: Any?
+    private var runLoopTimer: Timer?
+    private let smoothing: CGFloat = 0.3
+    private var targetPosition: CGPoint = .zero
+    private var currentPosition: CGPoint = .zero
+
+    private init() {}
+
+    func startTracking() {
+        guard !isTracking else { return }
+        isTracking = true
+
+        // Get initial cursor position
+        updateCursorPosition()
+
+        // Monitor global mouse events
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] event in
+            self?.handleMouseEvent(event)
+        }
+
+        // Fallback polling timer (for accessibility restrictions)
+        runLoopTimer = Timer.scheduledTimer(withTimeInterval: 1/30.0, repeats: true) { [weak self] _ in
+            self?.pollCursorPosition()
+        }
+    }
+
+    func stopTracking() {
+        isTracking = false
+        if let monitor = globalMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalMonitor = nil
+        }
+        runLoopTimer?.invalidate()
+        runLoopTimer = nil
+    }
+
+    private func handleMouseEvent(_ event: NSEvent) {
+        targetPosition = event.locationInWindow
+        // Convert to screen coordinates
+        if let screen = NSScreen.main {
+            let screenHeight = screen.frame.height
+            targetPosition.y = screenHeight - targetPosition.y
+        }
+    }
+
+    private func pollCursorPosition() {
+        let info = CGEvent(source: nil)?.location
+        if let point = info {
+            targetPosition = point
+        }
+    }
+
+    private func updateCursorPosition() {
+        // Initial position from CGEvent
+        if let info = CGEvent(source: nil)?.location {
+            cursorPosition = info
+            currentPosition = info
+            targetPosition = info
+        }
+    }
+
+    func getSmoothedPosition() -> CGPoint {
+        // Lerp towards target
+        currentPosition.x += (targetPosition.x - currentPosition.x) * smoothing
+        currentPosition.y += (targetPosition.y - currentPosition.y) * smoothing
+        return currentPosition
+    }
+
+    func clampedPosition(for panelSize: CGSize, edgePadding: CGFloat = 10) -> CGPoint {
+        let pos = getSmoothedPosition()
+        guard let screen = NSScreen.main else { return pos }
+
+        let frame = screen.frame
+        var x = pos.x + 20  // offset right of cursor
+        var y = pos.y - 10 - panelSize.height  // offset below cursor
+
+        // Clamp to screen bounds
+        x = max(frame.minX + edgePadding, min(x, frame.maxX - panelSize.width - edgePadding))
+        y = max(frame.minY + edgePadding, min(y, frame.maxY - panelSize.height - edgePadding))
+
+        return CGPoint(x: x, y: y)
+    }
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add Floatify/Floatify/CursorTracker.swift
+git commit -m "feat: add CursorTracker for cursor-follow notification position"
+```
+
+---
+
+## Task 5: Update FloatNotificationView with Animations and Effects
 
 **Files:**
 - Modify: `Floatify/Floatify/FloatNotificationView.swift`
@@ -387,6 +507,7 @@ struct FloatNotificationView: View {
         case .ripple: return .cyan
         case .shimmer: return .gray
         case .cascade: return .orange
+        case .trail: return .green
         }
     }
 
@@ -552,7 +673,7 @@ git commit -m "feat: add per-position animations and effects to notification vie
 
 ---
 
-## Task 5: Update FloatNotificationManager for Horizontal Stacking
+## Task 6: Update FloatNotificationManager for Horizontal Stacking and Cursor Tracking
 
 **Files:**
 - Modify: `Floatify/Floatify/FloatNotificationManager.swift`
@@ -600,6 +721,8 @@ class FloatNotificationManager {
     private func createPanel(message: String, corner: Corner, duration: TimeInterval, effect: NotificationEffect?) {
         if corner == .horizontal {
             handleHorizontalPanel(message: message, duration: duration, effect: effect)
+        } else if corner == .cursorFollow {
+            handleCursorFollowPanel(message: message, duration: duration, effect: effect)
         } else {
             handleVerticalPanel(message: message, corner: corner, duration: duration, effect: effect)
         }
@@ -656,6 +779,42 @@ class FloatNotificationManager {
         }
 
         scheduleDismiss(panel: panel, duration: duration)
+    }
+
+    private func handleCursorFollowPanel(message: String, duration: TimeInterval, effect: NotificationEffect?) {
+        // Start cursor tracking
+        CursorTracker.shared.startTracking()
+
+        let size = CGSize(width: 280, height: 68)
+        let origin = CursorTracker.shared.clampedPosition(for: size)
+
+        let panel = createPanel(contentRect: NSRect(origin: origin, size: size))
+
+        let view = FloatNotificationView(message: message, corner: .cursorFollow, effect: effect) { [weak self, weak panel] in
+            guard let panel = panel else { return }
+            self?.dismiss(panel: panel)
+        }
+        panel.contentView = NSHostingView(rootView: view)
+        panel.orderFront(nil)
+        panels.append(panel)
+
+        // Schedule position updates while tracking
+        scheduleCursorUpdates(panel: panel)
+
+        scheduleDismiss(panel: panel, duration: duration)
+    }
+
+    private func scheduleCursorUpdates(panel: FloatPanel) {
+        // Update position every frame (60fps)
+        Timer.scheduledTimer(withTimeInterval: 1/60.0, repeats: true) { [weak self, weak panel] timer in
+            guard let panel = panel, panel.contentView != nil else {
+                timer.invalidate()
+                return
+            }
+            let size = panel.frame.size
+            let newOrigin = CursorTracker.shared.clampedPosition(for: size)
+            panel.setFrameOrigin(newOrigin)
+        }
     }
 
     private func scheduleDismiss(panel: FloatPanel, duration: TimeInterval) {
@@ -741,6 +900,9 @@ class FloatNotificationManager {
             origin = CGPoint(x: frame.midX - size.width / 2, y: frame.maxY - size.height - padding - stackOffset - 22) // 22 = menu bar height
         case .horizontal:
             origin = CGPoint(x: frame.minX + padding, y: frame.minY + padding)
+        case .cursorFollow:
+            // Cursor follow handled separately with smooth tracking
+            origin = CursorTracker.shared.clampedPosition(for: size)
         }
         print("DEBUG: cornerOrigin for \(corner) - frame: \(frame), origin: \(origin)")
         return origin
@@ -763,7 +925,7 @@ git commit -m "feat: add horizontal stacking and extended position support"
 
 ---
 
-## Task 6: Update CLI for New Positions
+## Task 7: Update CLI for New Positions
 
 **Files:**
 - Modify: `Floatify/Floatify/cli/main.swift`
@@ -803,7 +965,7 @@ git commit -m "feat: add CLI support for extended corner positions and effects"
 
 ---
 
-## Task 7: Build and Verify
+## Task 8: Build and Verify
 
 **Files:**
 - None (build verification)
@@ -836,16 +998,18 @@ Expected: BUILD SUCCEEDED
 
 | Spec Requirement | Task |
 |------------------|------|
-| 7 position types (bottomLeft, bottomRight, topLeft, topRight, center, menubar, horizontal) | Task 1 |
+| 8 position types (bottomLeft, bottomRight, topLeft, topRight, center, menubar, horizontal, cursorFollow) | Task 1 |
 | Horizontal stacking with 4 max visible | Task 5 |
 | Cascade animation with 100ms delay | Task 4, Task 5 |
-| Particle sparkles (top corners) | Task 2, Task 4 |
-| Glow pulse (center) | Task 2, Task 4 |
-| Ripple effect (bottom corners) | Task 2, Task 4 |
-| Shimmer effect (menubar) | Task 2, Task 4 |
+| Cursor-follow with edge clamping | Task 4, Task 6 |
+| Cursor trail effect | Task 4, Task 6 |
+| Particle sparkles (top corners) | Task 2, Task 5 |
+| Glow pulse (center) | Task 2, Task 5 |
+| Ripple effect (bottom corners) | Task 2, Task 5 |
+| Shimmer effect (menubar) | Task 2, Task 5 |
 | Sound effects per position | Task 3 |
 | Sound respects silent mode | Task 3 |
-| Backwards compatible with bottomLeft/bottomRight | Task 5 |
+| Backwards compatible with bottomLeft/bottomRight | Task 6 |
 
 ---
 

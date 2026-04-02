@@ -2,7 +2,7 @@
 
 ## Overview
 
-Extend Floatify's notification positioning system from 2 corners (bottomLeft, bottomRight) to 7 position types with horizontal stacking, per-position animations, visual effects, and sound effects.
+Extend Floatify's notification positioning system from 2 corners (bottomLeft, bottomRight) to 8 position types with horizontal stacking, cursor-following, per-position animations, visual effects, and sound effects.
 
 ## Position Types
 
@@ -26,6 +26,9 @@ enum Corner {
 
     // Horizontal stacking mode (new, works with any anchor)
     case horizontal
+
+    // Cursor-following (new)
+    case cursorFollow
 }
 ```
 
@@ -40,6 +43,7 @@ enum Corner {
 | center      | screen center | scale/bounce | bounce in |
 | menubar     | top center (below menu bar) | horizontal or vertical | gentle drop |
 | horizontal  | screen bottom-left corner | horizontal right | cascade slide |
+| cursorFollow | near cursor position | follows cursor | fade in |
 
 ## Horizontal Stacking
 
@@ -72,6 +76,7 @@ struct HorizontalStackManager {
 | center      | bounce + scale | 500ms | spring(0.5, 0.8) |
 | menubar     | gentle drop | 400ms | easeInOut |
 | horizontal  | cascade slide | 350ms each | easeOut |
+| cursorFollow | fade in | 300ms | easeInOut |
 
 ### Exit Animation
 
@@ -113,6 +118,33 @@ struct HorizontalStackManager {
 - Entry y-position staggers: each 4px lower than previous
 - Final positions align after all entries complete
 
+## Cursor-Following Position
+
+When `cursorFollow` is active:
+
+- Notification appears near the cursor position with offset (20px right, 10px below)
+- Stays within screen bounds (clamps to edges when cursor near screen boundary)
+- Uses `NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved)` to track cursor
+- Position updates smoothly (throttled to 60fps max)
+- Falls back to `bottomRight` if cursor position unavailable
+- Notification tracks cursor until dismissed
+- Trail effect: optional subtle trail/ghost showing recent positions
+
+```swift
+struct CursorFollowConfig {
+    static let offsetX: CGFloat = 20   // offset to the right of cursor
+    static let offsetY: CGFloat = 10   // offset below cursor
+    static let edgePadding: CGFloat = 10 // min distance from screen edge
+    static let smoothing: CGFloat = 0.3  // lerp factor for smooth movement
+}
+```
+
+### Cursor Trail Effect
+
+- On move: previous position fades out as ghost (opacity 0.3 -> 0, 200ms)
+- Max 1 ghost trail at a time
+- Ghost is a copy of notification at 80% opacity, no interaction
+
 ## Sound Effects
 
 ### Sound Mapping
@@ -126,6 +158,7 @@ struct HorizontalStackManager {
 | center      | alert tone | alert_center.wav | 400ms |
 | menubar     | whisper | whisper.wav | 250ms |
 | horizontal  | cascade chime | cascade.wav | 500ms |
+| cursorFollow | soft ping | ping.wav | 200ms |
 
 ### Implementation
 
@@ -154,6 +187,7 @@ New `effect` field optional:
 - `"ripple"` - sound wave
 - `"shimmer"` - light sweep
 - `"cascade"` - sequential entry
+- `"trail"` - cursor trail ghost effect
 - `null` - position default effect
 
 ### Default Effects by Position
@@ -167,6 +201,7 @@ New `effect` field optional:
 | center      | glow |
 | menubar     | shimmer |
 | horizontal  | cascade |
+| cursorFollow | trail |
 
 ## Architecture Changes
 
@@ -183,11 +218,12 @@ New `effect` field optional:
 - `FloatEffects.swift` - particle system, glow renderer, ripple animator
 - `SoundManager.swift` - audio playback with volume/silent mode
 - `HorizontalStackManager.swift` - horizontal layout logic
-- `Sounds/` directory - audio files
+- `CursorTracker.swift` - global mouse tracking for cursorFollow position
+- `Sounds/` directory - audio files (including ping.wav)
 
 ## Testing Checklist
 
-- [ ] All 7 positions render correctly on single monitor
+- [ ] All 8 positions render correctly on single monitor
 - [ ] Horizontal stacking: 3 notifications appear side-by-side
 - [ ] Horizontal stacking: oldest dismissed when 4th arrives
 - [ ] Particle sparkles appear on top corner notifications
@@ -198,4 +234,9 @@ New `effect` field optional:
 - [ ] Sound plays on notification appear (when not silent)
 - [ ] Sound silent when system in silent/do not disturb
 - [ ] Multi-monitor: notifications appear on correct screen
+- [ ] Cursor-follow: notification appears near cursor with offset
+- [ ] Cursor-follow: notification stays within screen bounds (edge clamping)
+- [ ] Cursor-follow: notification tracks cursor smoothly on move
+- [ ] Cursor-follow: ghost trail appears when notification moves
+- [ ] Cursor-follow: falls back to bottomRight when cursor unavailable
 - [ ] Existing bottomLeft/bottomRight behavior unchanged (backwards compatible)
