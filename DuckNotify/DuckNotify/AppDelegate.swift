@@ -1,6 +1,5 @@
 import AppKit
 
-@main
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem!

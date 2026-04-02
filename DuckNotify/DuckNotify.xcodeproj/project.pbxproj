@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		07A63903F1C03E2282AB095D /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B54947518110898938F720 /* main.swift */; };
 		0C2A6CCD85A405516857999D /* DuckNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DE095EAD18582BA71B0D76F /* DuckNotificationView.swift */; };
+		1FE3FCE73BE061F7B6FBD98F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D26C307E6CA0B1CBD7415E4 /* main.swift */; };
 		40E54A96AE7383879DE3B87E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2099FEBD205C4D14EF7BDB5C /* AppDelegate.swift */; };
 		5AC58E4AC53F541D52DD08E1 /* duck-notify in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 89A6320CD48A717637C9203C /* duck-notify */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		AE04013DED83451BB96E6312 /* Corner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 511ED30F5C3A8FFD8042024F /* Corner.swift */; };
@@ -43,6 +44,7 @@
 		2099FEBD205C4D14EF7BDB5C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4DE095EAD18582BA71B0D76F /* DuckNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuckNotificationView.swift; sourceTree = "<group>"; };
 		511ED30F5C3A8FFD8042024F /* Corner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Corner.swift; sourceTree = "<group>"; };
+		6D26C307E6CA0B1CBD7415E4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		89A6320CD48A717637C9203C /* duck-notify */ = {isa = PBXFileReference; includeInIndex = 0; path = "duck-notify"; sourceTree = BUILT_PRODUCTS_DIR; };
 		98B54947518110898938F720 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		C2D219C8FD85D22E49ACC3D7 /* DuckNotify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DuckNotify.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -78,6 +80,7 @@
 				DACDA07A12C35A38BB3CE6CA /* DuckNotificationManager.swift */,
 				4DE095EAD18582BA71B0D76F /* DuckNotificationView.swift */,
 				F17671C437BCA243E604FBBB /* Info.plist */,
+				6D26C307E6CA0B1CBD7415E4 /* main.swift */,
 			);
 			path = DuckNotify;
 			sourceTree = "<group>";
@@ -184,6 +187,7 @@
 				AE04013DED83451BB96E6312 /* Corner.swift in Sources */,
 				EECBC7BE38B3C01BE71E71A2 /* DuckNotificationManager.swift in Sources */,
 				0C2A6CCD85A405516857999D /* DuckNotificationView.swift in Sources */,
+				1FE3FCE73BE061F7B6FBD98F /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
