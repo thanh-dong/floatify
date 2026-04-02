@@ -5,6 +5,7 @@ import Foundation
 var message = "Task complete!"
 var corner = "bottomRight"
 var duration = "6"
+var effect: String? = nil
 
 let args = Array(CommandLine.arguments.dropFirst())
 var index = 0
@@ -20,6 +21,8 @@ while index < args.count {
         corner = args[index]
     case "--duration":
         duration = args[index]
+    case "--effect":
+        effect = args[index]
     default:
         break
     }
@@ -27,8 +30,9 @@ while index < args.count {
 }
 
 // Validate corner
-guard corner == "bottomLeft" || corner == "bottomRight" else {
-    fputs("Invalid corner '\(corner)'. Use 'bottomLeft' or 'bottomRight'.\n", stderr)
+let validCorners = ["bottomLeft", "bottomRight", "topLeft", "topRight", "center", "menubar", "horizontal", "cursorFollow"]
+guard validCorners.contains(corner) else {
+    fputs("Invalid corner '\(corner)'. Use: \(validCorners.joined(separator: ", ")).\n", stderr)
     exit(1)
 }
 
@@ -42,11 +46,15 @@ guard Double(duration) != nil else {
 
 let pipePath = "/var/tmp/floatify.pipe"
 
-let payload: [String: Any] = [
+var payload: [String: Any] = [
     "message":  message,
     "corner":   corner,
     "duration": Double(duration) ?? 6.0
 ]
+
+if let effect = effect {
+    payload["effect"] = effect
+}
 
 guard let data = try? JSONSerialization.data(withJSONObject: payload) else {
     fputs("Failed to encode payload\n", stderr)
