@@ -10,20 +10,11 @@
 		0F220237F68BB335FAACF2E4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80FABD64CC2AB3A7B7C000DC /* main.swift */; };
 		3FDECEC56F61445657E65D3F /* FloatNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DACC97B72E843D8F308AB3E /* FloatNotificationView.swift */; };
 		60EA7C7065C2955E6CFCCBD0 /* Corner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64F6A91E7F736FCB8819CA6F /* Corner.swift */; };
+		B30711D21D567F22226BE83C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D5384F019B036F95A28E65D7 /* Assets.xcassets */; };
 		C95C6817E7C45A90A43FE657 /* FloatNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2C9FF9FF7D99C1C4BEB05A0 /* FloatNotificationManager.swift */; };
 		F0CD4B564D1ECAA6D9FBF60A /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0CFF7F45B818C87EFDF510 /* main.swift */; };
 		F2C2CF84F2AF4D6427BC1600 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63DAD4239E10639F6510535 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		25D941D613F9F9ABA10A4BA7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BAB3750650B0459D07BE79ED /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 7ADCF5B42B329578AE70968F;
-			remoteInfo = floatify;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		04830C59EC2F08805CED8332 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -35,6 +26,7 @@
 		889D2E95327A399171312B59 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B0FB1358410034C55CF7BF79 /* floatify */ = {isa = PBXFileReference; includeInIndex = 0; path = floatify; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2C9FF9FF7D99C1C4BEB05A0 /* FloatNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatNotificationManager.swift; sourceTree = "<group>"; };
+		D5384F019B036F95A28E65D7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D63DAD4239E10639F6510535 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -71,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				D63DAD4239E10639F6510535 /* AppDelegate.swift */,
+				D5384F019B036F95A28E65D7 /* Assets.xcassets */,
 				64F6A91E7F736FCB8819CA6F /* Corner.swift */,
 				C2C9FF9FF7D99C1C4BEB05A0 /* FloatNotificationManager.swift */,
 				4DACC97B72E843D8F308AB3E /* FloatNotificationView.swift */,
@@ -105,11 +98,11 @@
 			buildConfigurationList = 0A8038578C0DC5908F6D0165 /* Build configuration list for PBXNativeTarget "Floatify" */;
 			buildPhases = (
 				2FD410FA59565145EC6878AF /* Sources */,
+				10CA4817F317613084D5FC47 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				5E83E33DA7C3647CFD67309A /* PBXTargetDependency */,
 			);
 			name = Floatify;
 			packageProductDependencies = (
@@ -155,6 +148,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		10CA4817F317613084D5FC47 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B30711D21D567F22226BE83C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		2FD410FA59565145EC6878AF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -177,14 +181,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		5E83E33DA7C3647CFD67309A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 7ADCF5B42B329578AE70968F /* floatify */;
-			targetProxy = 25D941D613F9F9ABA10A4BA7 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		212B8B6356CB67B45943EF8B /* Release */ = {
