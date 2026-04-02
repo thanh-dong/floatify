@@ -14,6 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         setupPipeListener()
         installCLIToolIfNeeded()
+        SoundManager.shared.loadSounds()
     }
 
     // MARK: - Menu Bar
