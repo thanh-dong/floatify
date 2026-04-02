@@ -42,8 +42,8 @@ class ParticleSystem: ObservableObject {
             let speed = CGFloat.random(in: particleSpeed * 0.5...particleSpeed)
 
             let velocity = direction ?? CGVector(
-                dx: cos(angle) * speed,
-                dy: sin(angle) * speed
+                dx: Darwin.cos(angle) * speed,
+                dy: Darwin.sin(angle) * speed
             )
 
             let particle = Particle(
@@ -163,8 +163,8 @@ struct RippleView: View {
     var body: some View {
         Circle()
             .stroke(color, lineWidth: 2)
-            .fill(RippleShape(progress: progress))
             .opacity(opacity)
+            .scaleEffect(1 + progress * 0.5)
             .onAppear {
                 withAnimation(.easeOut(duration: 0.6)) {
                     progress = 1

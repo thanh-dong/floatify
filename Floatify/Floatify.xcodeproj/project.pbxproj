@@ -8,17 +8,23 @@
 
 /* Begin PBXBuildFile section */
 		0F220237F68BB335FAACF2E4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80FABD64CC2AB3A7B7C000DC /* main.swift */; };
+		105688FB95824CFE2774E209 /* FloatEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440F612B0DBA815B721CCD32 /* FloatEffects.swift */; };
 		3FDECEC56F61445657E65D3F /* FloatNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DACC97B72E843D8F308AB3E /* FloatNotificationView.swift */; };
+		4DF1E2C00D13115C9933D6A9 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DEFE1B73525741A71CA3DE3 /* SoundManager.swift */; };
 		60EA7C7065C2955E6CFCCBD0 /* Corner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64F6A91E7F736FCB8819CA6F /* Corner.swift */; };
 		B30711D21D567F22226BE83C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D5384F019B036F95A28E65D7 /* Assets.xcassets */; };
 		C95C6817E7C45A90A43FE657 /* FloatNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2C9FF9FF7D99C1C4BEB05A0 /* FloatNotificationManager.swift */; };
 		F0CD4B564D1ECAA6D9FBF60A /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0CFF7F45B818C87EFDF510 /* main.swift */; };
 		F2C2CF84F2AF4D6427BC1600 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63DAD4239E10639F6510535 /* AppDelegate.swift */; };
+		F99C39E270331F4B91B0D17F /* CursorTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 628FC4BFF079783826FBD6EA /* CursorTracker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		04830C59EC2F08805CED8332 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		440F612B0DBA815B721CCD32 /* FloatEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatEffects.swift; sourceTree = "<group>"; };
 		4DACC97B72E843D8F308AB3E /* FloatNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatNotificationView.swift; sourceTree = "<group>"; };
+		4DEFE1B73525741A71CA3DE3 /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
+		628FC4BFF079783826FBD6EA /* CursorTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorTracker.swift; sourceTree = "<group>"; };
 		64F6A91E7F736FCB8819CA6F /* Corner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Corner.swift; sourceTree = "<group>"; };
 		696097BA1731283FE8A7584F /* Floatify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Floatify.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D0CFF7F45B818C87EFDF510 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -65,10 +71,13 @@
 				D63DAD4239E10639F6510535 /* AppDelegate.swift */,
 				D5384F019B036F95A28E65D7 /* Assets.xcassets */,
 				64F6A91E7F736FCB8819CA6F /* Corner.swift */,
+				628FC4BFF079783826FBD6EA /* CursorTracker.swift */,
+				440F612B0DBA815B721CCD32 /* FloatEffects.swift */,
 				C2C9FF9FF7D99C1C4BEB05A0 /* FloatNotificationManager.swift */,
 				4DACC97B72E843D8F308AB3E /* FloatNotificationView.swift */,
 				889D2E95327A399171312B59 /* Info.plist */,
 				80FABD64CC2AB3A7B7C000DC /* main.swift */,
+				4DEFE1B73525741A71CA3DE3 /* SoundManager.swift */,
 			);
 			path = Floatify;
 			sourceTree = "<group>";
@@ -166,8 +175,11 @@
 			files = (
 				F2C2CF84F2AF4D6427BC1600 /* AppDelegate.swift in Sources */,
 				60EA7C7065C2955E6CFCCBD0 /* Corner.swift in Sources */,
+				F99C39E270331F4B91B0D17F /* CursorTracker.swift in Sources */,
+				105688FB95824CFE2774E209 /* FloatEffects.swift in Sources */,
 				C95C6817E7C45A90A43FE657 /* FloatNotificationManager.swift in Sources */,
 				3FDECEC56F61445657E65D3F /* FloatNotificationView.swift in Sources */,
+				4DF1E2C00D13115C9933D6A9 /* SoundManager.swift in Sources */,
 				0F220237F68BB335FAACF2E4 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

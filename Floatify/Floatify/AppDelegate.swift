@@ -89,7 +89,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleJSON(_ json: [String: Any]) {
         let message = json["message"] as? String ?? "Task complete!"
         let cornerStr = json["corner"] as? String ?? "bottomRight"
-        let corner: Corner = cornerStr == "bottomLeft" ? .bottomLeft : .bottomRight
+        let corner: Corner
+        switch cornerStr {
+        case "bottomLeft": corner = .bottomLeft
+        case "bottomRight": corner = .bottomRight
+        case "topLeft": corner = .topLeft
+        case "topRight": corner = .topRight
+        case "center": corner = .center
+        case "menubar": corner = .menubar
+        case "horizontal": corner = .horizontal
+        case "cursorFollow": corner = .cursorFollow
+        default: corner = .bottomRight
+        }
         let duration = json["duration"] as? TimeInterval ?? 6.0
 
         DispatchQueue.main.async {
