@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FloatNotificationView: View {
     let message: String
+    var project: String?
     var corner: Corner = .bottomRight
     var effect: String? = nil
     var sound: String? = nil
@@ -21,6 +22,14 @@ struct FloatNotificationView: View {
 
     private var effectiveSound: String? {
         sound ?? corner.defaultSound
+    }
+
+    private var displayName: String {
+        let name = project ?? "Claude Code"
+        if name.count > 20 {
+            return String(name.prefix(20)) + "..."
+        }
+        return name
     }
 
     private var entryAnimation: (offset: CGFloat, y: CGFloat) {
@@ -75,9 +84,10 @@ struct FloatNotificationView: View {
                 .modifier(GlowModifier(color: .yellow, radius: showGlow ? 12 : 0))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Claude Code")
+                Text(displayName)
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
                 Text(message)
                     .font(.system(size: 13, weight: .medium))
                     .lineLimit(2)

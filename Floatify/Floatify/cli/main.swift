@@ -5,6 +5,7 @@ import Foundation
 var message = "Task complete!"
 var corner = "bottomRight"
 var duration = "6"
+var project = "Claude Code"
 var effect: String? = nil
 
 let args = Array(CommandLine.arguments.dropFirst())
@@ -21,6 +22,8 @@ while index < args.count {
         corner = args[index]
     case "--duration":
         duration = args[index]
+    case "--project":
+        project = args[index]
     case "--effect":
         effect = args[index]
     default:
@@ -49,7 +52,8 @@ let pipePath = "/var/tmp/floatify.pipe"
 var payload: [String: Any] = [
     "message":  message,
     "corner":   corner,
-    "duration": Double(duration) ?? 6.0
+    "duration": Double(duration) ?? 6.0,
+    "project":  project
 ]
 
 if let effect = effect {

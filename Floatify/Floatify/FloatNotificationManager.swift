@@ -6,6 +6,7 @@ import os.log
 
 class FloatPanel: NSPanel {
     var horizontalIndex: Int = 0
+    var notificationCorner: Corner = .bottomRight
 
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
@@ -29,13 +30,13 @@ class FloatNotificationManager {
 
     private init() {}
 
-    func show(message: String, corner: Corner, duration: TimeInterval = 6) {
+    func show(message: String, corner: Corner, duration: TimeInterval = 6, project: String?) {
         DispatchQueue.main.async {
-            self.createPanel(message: message, corner: corner, duration: duration)
+            self.createPanel(message: message, corner: corner, duration: duration, project: project)
         }
     }
 
-    private func createPanel(message: String, corner: Corner, duration: TimeInterval) {
+    private func createPanel(message: String, corner: Corner, duration: TimeInterval, project: String?) {
         if panels.count >= maxPanels {
             dismissOldest()
         }
@@ -63,6 +64,7 @@ class FloatNotificationManager {
             origin = cornerOrigin(corner: corner, size: size, stackOffset: stackOffsetY)
         }
 
+        newPanel.notificationCorner = corner
         newPanel.setFrameOrigin(origin)
         newPanel.level = .popUpMenu
         newPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -71,7 +73,7 @@ class FloatNotificationManager {
         newPanel.hasShadow = false
         newPanel.ignoresMouseEvents = false
 
-        let view = FloatNotificationView(message: message, corner: corner) { [weak self] in
+        let view = FloatNotificationView(message: message, project: project, corner: corner) { [weak self] in
             self?.dismiss(panel: newPanel)
         }
         newPanel.contentView = NSHostingView(rootView: view)
@@ -143,8 +145,7 @@ class FloatNotificationManager {
             let offsetY = CGFloat(index) * stackOffset
             guard let frame = panel.contentView?.window?.frame else { continue }
             let size = frame.size
-            let corner: Corner = frame.origin.x < (NSScreen.main?.visibleFrame.midX ?? 0) ? .bottomLeft : .bottomRight
-            let newOrigin = cornerOrigin(corner: corner, size: size, stackOffset: offsetY)
+            let newOrigin = cornerOrigin(corner: panel.notificationCorner, size: size, stackOffset: offsetY)
             panel.setFrameOrigin(newOrigin)
         }
     }

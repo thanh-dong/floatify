@@ -30,7 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func testNotification() {
-        FloatNotificationManager.shared.show(message: "Test notification! 🦆", corner: .bottomRight, duration: 5)
+        FloatNotificationManager.shared.show(message: "Test notification! 🦆", corner: .bottomRight, duration: 5, project: "Claude Code")
     }
 
     @objc private func quit() {
@@ -83,6 +83,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func handleJSON(_ json: [String: Any]) {
         let message = json["message"] as? String ?? "Task complete!"
+        let project = json["project"] as? String ?? "Claude Code"
         let cornerStr = json["corner"] as? String ?? "bottomRight"
         let corner: Corner
         switch cornerStr {
@@ -99,7 +100,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let duration = json["duration"] as? TimeInterval ?? 6.0
 
         DispatchQueue.main.async {
-            FloatNotificationManager.shared.show(message: message, corner: corner, duration: duration)
+            FloatNotificationManager.shared.show(message: message, corner: corner, duration: duration, project: project)
         }
     }
 
