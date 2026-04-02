@@ -109,17 +109,15 @@ class FloatNotificationManager {
     }
 
     private func startCursorTracking(for panel: FloatPanel) {
-        Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak panel] timer in
-            guard let panel = panel, panel.isVisible else {
-                timer.invalidate()
-                return
-            }
-            let newOrigin = CursorTracker.shared.screenCornerPosition(for: .cursorFollow, panelSize: panel.frame.size)
-            panel.setFrameOrigin(newOrigin)
-        }
+        CursorTracker.shared.startDisplayLink(for: panel)
+    }
+
+    private func stopCursorTracking(for panel: FloatPanel) {
+        CursorTracker.shared.stopDisplayLink(for: panel)
     }
 
     private func dismiss(panel: FloatPanel) {
+        stopCursorTracking(for: panel)
         panel.orderOut(nil)
         panels.removeAll { $0 === panel }
         repositionPanels()
