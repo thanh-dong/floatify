@@ -6,11 +6,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var pipeSource: DispatchSourceRead?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let alert = NSAlert()
-        alert.messageText = "Floatify Started"
-        alert.informativeText = "The app has started successfully"
-        alert.runModal()
-
         setupStatusItem()
         setupPipeListener()
         installCLIToolIfNeeded()
@@ -114,19 +109,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let defaults = UserDefaults.standard
         guard !defaults.bool(forKey: "CLISymlinkInstalled") else { return }
 
-        let alert = NSAlert()
-        alert.messageText = "Install floatify CLI?"
-        alert.informativeText = "Floatify needs to create a symlink at /usr/local/bin/floatify so Claude Code can trigger notifications. This requires administrator privileges."
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "Install")
-        alert.addButton(withTitle: "Skip")
-
-        let response = alert.runModal()
-        guard response == .alertFirstButtonReturn else { return }
-
         let src = Bundle.main.url(forResource: "floatify", withExtension: nil)
         guard let srcURL = src else {
-            print("floatify binary not found in app bundle")
+            NSLog("Floatify: floatify binary not found in app bundle")
             return
         }
 
@@ -136,13 +121,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             try FileManager.default.createSymbolicLink(at: dest, withDestinationURL: srcURL)
             defaults.set(true, forKey: "CLISymlinkInstalled")
-            print("Installed floatify to /usr/local/bin/")
+            NSLog("Floatify: Installed floatify to /usr/local/bin/")
         } catch {
-            let permAlert = NSAlert()
-            permAlert.messageText = "Permission denied"
-            permAlert.informativeText = "Could not create /usr/local/bin/floatify. Run: sudo ln -s \(srcURL.path) /usr/local/bin/floatify"
-            permAlert.alertStyle = .warning
-            permAlert.runModal()
+            NSLog("Floatify: Failed to install floatify CLI: %@", error.localizedDescription)
         }
     }
 }
