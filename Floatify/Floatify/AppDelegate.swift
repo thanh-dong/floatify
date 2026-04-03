@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupPipeListener()
         installCLIToolIfNeeded()
         SoundManager.shared.loadSounds()
+        CursorTracker.shared.startTracking()
     }
 
     // MARK: - Menu Bar

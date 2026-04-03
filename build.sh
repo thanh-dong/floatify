@@ -20,6 +20,11 @@ echo "Building floatify CLI..."
 xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Release build \
     CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
 
+# Quit running Floatify app
+echo "Quitting existing Floatify..."
+pkill -x Floatify || true
+sleep 1
+
 # Install app to /Applications
 echo "Installing Floatify.app to /Applications..."
 rm -rf /Applications/Floatify.app
@@ -31,3 +36,7 @@ FLOATIFY_CLI=$(ls -t ~/Library/Developer/Xcode/DerivedData/Floatify-*/Build/Prod
 sudo ln -sf "$FLOATIFY_CLI" /usr/local/bin/floatify
 
 echo "Build and install complete!"
+
+# Reopen Floatify
+echo "Reopening Floatify..."
+open /Applications/Floatify.app
