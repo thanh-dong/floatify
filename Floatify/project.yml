@@ -19,6 +19,8 @@ targets:
         excludes:
           - "**/.DS_Store"
           - "cli/**"
+      - path: Floatify/Resources
+        buildPhase: resources
       - path: Floatify/Assets.xcassets
         buildPhase: resources
     settings:
