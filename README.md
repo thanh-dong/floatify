@@ -92,19 +92,19 @@ Approve the CLI symlink prompt when it appears. The `floatify` command will be a
 
 ```bash
 # Basic notification
-floatify --message 'Task complete!' --corner bottomRight --duration 6
+floatify --message 'Task complete!' --position bottomRight --duration 6
 
 # Corner positions
-floatify --message 'Bottom Left!' --corner bottomLeft --duration 4
-floatify --message 'Bottom Right!' --corner bottomRight --duration 4
-floatify --message 'Top Left!' --corner topLeft --duration 4
-floatify --message 'Top Right!' --corner topRight --duration 4
-floatify --message 'Centered!' --corner center --duration 5
-floatify --message 'Below menu bar!' --corner menubar --duration 5
-floatify --message 'Horizontal!' --corner horizontal --duration 5
+floatify --message 'Bottom Left!' --position bottomLeft --duration 4
+floatify --message 'Bottom Right!' --position bottomRight --duration 4
+floatify --message 'Top Left!' --position topLeft --duration 4
+floatify --message 'Top Right!' --position topRight --duration 4
+floatify --message 'Centered!' --position center --duration 5
+floatify --message 'Below menu bar!' --position menubar --duration 5
+floatify --message 'Horizontal!' --position horizontal --duration 5
 
 # Follows your cursor
-floatify --message 'Following cursor!' --corner cursorFollow --duration 8
+floatify --message 'Following cursor!' --position cursorFollow --duration 8
 ```
 
 ---
@@ -118,22 +118,22 @@ floatify [options]
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--message` | Notification text | `Task complete!` |
-| `--corner` | Screen position | `bottomRight` |
+| `--position` | Screen position | `bottomRight` |
 | `--duration` | Auto-dismiss seconds | `6` |
 | `--effect` | Animation effect | Position-specific |
 
-### Corner Positions
+### Position Options
 
 | Flag | Description |
 |------|-------------|
-| `--corner bottomLeft` | Bottom-left corner |
-| `--corner bottomRight` | Bottom-right corner |
-| `--corner topLeft` | Top-left corner |
-| `--corner topRight` | Top-right corner |
-| `--corner center` | Screen center |
-| `--corner menubar` | Below menu bar |
-| `--corner horizontal` | Horizontal layout at bottom-center |
-| `--corner cursorFollow` | Follows cursor position |
+| `--position bottomLeft` | Bottom-left corner |
+| `--position bottomRight` | Bottom-right corner |
+| `--position topLeft` | Top-left corner |
+| `--position topRight` | Top-right corner |
+| `--position center` | Screen center |
+| `--position menubar` | Below menu bar |
+| `--position horizontal` | Horizontal layout at bottom-center |
+| `--position cursorFollow` | Follows cursor position |
 
 ---
 
@@ -149,7 +149,7 @@ Add to your `~/.claude/settings.json` to get notifications when Claude Code fini
         "hooks": [
           {
             "type": "command",
-            "command": "floatify --message 'Floatify is waiting' --corner bottomRight --duration 10"
+            "command": "floatify --message 'Floatify is waiting' --position bottomRight --duration 10"
           }
         ]
       }
@@ -160,7 +160,7 @@ Add to your `~/.claude/settings.json` to get notifications when Claude Code fini
         "hooks": [
           {
             "type": "command",
-            "command": "floatify --message 'Bash done' --corner bottomLeft --duration 5"
+            "command": "floatify --message 'Bash done' --position bottomLeft --duration 5"
           }
         ]
       }

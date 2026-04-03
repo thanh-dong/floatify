@@ -18,7 +18,7 @@ while index < args.count {
     switch flag {
     case "--message":
         message = args[index]
-    case "--corner":
+    case "--position", "--corner":
         corner = args[index]
     case "--duration":
         duration = args[index]
