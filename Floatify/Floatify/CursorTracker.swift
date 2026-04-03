@@ -5,6 +5,9 @@ final class CursorTracker {
     static let shared = CursorTracker()
 
     var edgePadding: CGFloat = 20
+    var snapThreshold: CGFloat = 100  // pixels from corner to trigger snap
+    var cursorOffsetX: CGFloat = 20   // offset right of cursor
+    var cursorOffsetY: CGFloat = 10    // offset below cursor
 
     var currentPosition: CGPoint {
         NSEvent.mouseLocation
@@ -20,20 +23,64 @@ final class CursorTracker {
         // No-op
     }
 
-    func clampedPosition(in rect: CGRect) -> CGPoint {
+    private func distanceToCorner(_ corner: Corner, from point: CGPoint, screenSize: CGSize) -> CGFloat {
+        let cornerX: CGFloat
+        let cornerY: CGFloat
+
+        switch corner {
+        case .bottomLeft:
+            cornerX = 0
+            cornerY = 0
+        case .bottomRight:
+            cornerX = screenSize.width
+            cornerY = 0
+        case .topLeft:
+            cornerX = 0
+            cornerY = screenSize.height
+        case .topRight:
+            cornerX = screenSize.width
+            cornerY = screenSize.height
+        default:
+            return .greatestFiniteMagnitude
+        }
+
+        let dx = point.x - cornerX
+        let dy = point.y - cornerY
+        return sqrt(dx * dx + dy * dy)
+    }
+
+    private func cornerOriginForFollow(corner: Corner, size: CGSize) -> CGPoint {
         let screen = NSScreen.main?.frame ?? .zero
-        let pos = NSEvent.mouseLocation
 
-        var x = pos.x
-        var y = pos.y
+        switch corner {
+        case .bottomLeft:
+            return CGPoint(x: edgePadding, y: edgePadding)
+        case .bottomRight:
+            return CGPoint(x: screen.width - size.width - edgePadding, y: edgePadding)
+        case .topLeft:
+            return CGPoint(x: edgePadding, y: screen.height - size.height - edgePadding)
+        case .topRight:
+            return CGPoint(x: screen.width - size.width - edgePadding, y: screen.height - size.height - edgePadding)
+        default:
+            return CGPoint(x: edgePadding, y: edgePadding)
+        }
+    }
 
-        x = max(rect.minX + edgePadding, min(x, rect.maxX - edgePadding))
-        y = max(rect.minY + edgePadding, min(y, rect.maxY - edgePadding))
+    func clampedPosition(in rect: CGRect, panelSize: CGSize) -> CGPoint {
+        let screen = NSScreen.main?.frame ?? .zero
+        var pos = NSEvent.mouseLocation
 
-        x = max(edgePadding, min(x, screen.width - edgePadding))
-        y = max(edgePadding, min(y, screen.height - edgePadding))
+        // Offset by panel half-size so setFrameOrigin (top-left corner) centers on cursor
+        pos.x -= panelSize.width / 2
+        pos.y -= panelSize.height / 2
 
-        return CGPoint(x: x, y: y)
+        pos.x = max(rect.minX + edgePadding, min(pos.x, rect.maxX - edgePadding))
+        pos.y = max(rect.minY + edgePadding, min(pos.y, rect.maxY - edgePadding))
+
+        pos.x = max(edgePadding, min(pos.x, screen.width - edgePadding))
+        pos.y = max(edgePadding, min(pos.y, screen.height - edgePadding))
+
+        return CGPoint(x: pos.x, y: pos.y)
     }
 
     func screenCornerPosition(for corner: Corner, panelSize: CGSize) -> CGPoint {
@@ -55,7 +102,37 @@ final class CursorTracker {
         case .horizontal:
             return CGPoint(x: screen.midX, y: edgePadding + panelSize.height / 2)
         case .cursorFollow:
-            return clampedPosition(in: screen)
+            let cursorPos = NSEvent.mouseLocation
+            let screenSize = screen.size
+
+            // Calculate distance to each corner
+            let corners: [Corner] = [.bottomLeft, .bottomRight, .topLeft, .topRight]
+            var minDistance: CGFloat = .greatestFiniteMagnitude
+            var nearestCorner: Corner = .bottomRight
+
+            for corner in corners {
+                let dist = distanceToCorner(corner, from: cursorPos, screenSize: screenSize)
+                if dist < minDistance {
+                    minDistance = dist
+                    nearestCorner = corner
+                }
+            }
+
+            // If cursor is near a corner, snap to it
+            if minDistance < snapThreshold {
+                return cornerOriginForFollow(corner: nearestCorner, size: panelSize)
+            }
+
+            // Otherwise follow cursor with offset
+            var followPos = cursorPos
+            followPos.x += cursorOffsetX
+            followPos.y -= cursorOffsetY  // subtract because screen coords are flipped
+
+            // Clamp to screen bounds
+            followPos.x = max(edgePadding, min(followPos.x, screenSize.width - panelSize.width - edgePadding))
+            followPos.y = max(edgePadding, min(followPos.y, screenSize.height - panelSize.height - edgePadding))
+
+            return followPos
         }
     }
 }
