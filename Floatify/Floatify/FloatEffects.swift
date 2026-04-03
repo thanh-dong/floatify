@@ -22,6 +22,7 @@ class ParticleSystem: ObservableObject {
 
     private var displayLink: CVDisplayLink?
     private var emitter: ((inout [Particle]) -> Void)?
+    private var timer: Timer?
 
     var particleLifetime: TimeInterval = 0.8
     var emissionRate: Int = 12
@@ -73,7 +74,7 @@ class ParticleSystem: ObservableObject {
     private func startEmitting() {
         var lastUpdate = Date()
 
-        Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             let now = Date()
             let delta = now.timeIntervalSince(lastUpdate)
@@ -83,7 +84,10 @@ class ParticleSystem: ObservableObject {
     }
 
     private func stopEmitting() {
+        timer?.invalidate()
+        timer = nil
         displayLink.map { CVDisplayLinkStop($0) }
+        displayLink = nil
     }
 }
 

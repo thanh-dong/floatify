@@ -129,7 +129,9 @@ class FloatNotificationManager {
     }
 
     private func dismiss(panel: FloatPanel) {
-        stopCursorTracking(for: panel)
+        if panel.notificationCorner == .cursorFollow {
+            stopCursorTracking(for: panel)
+        }
         panel.orderOut(nil)
         panels.removeAll { $0 === panel }
         repositionPanels()

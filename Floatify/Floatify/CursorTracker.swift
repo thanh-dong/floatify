@@ -7,6 +7,7 @@ final class CursorTracker {
     private var monitor: Any?
     private var lastPosition: CGPoint = .zero
     private var smoothedPosition: CGPoint = .zero
+    private var isTracking = false
 
     var smoothingFactor: CGFloat = 0.8
     var edgePadding: CGFloat = 20
@@ -15,21 +16,23 @@ final class CursorTracker {
         NSEvent.mouseLocation
     }
 
-    private init() {
-        startTracking()
-    }
+    private init() {}
 
     deinit {
         stopTracking()
     }
 
     func startTracking() {
+        guard !isTracking else { return }
+        isTracking = true
         monitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] event in
             self?.handleMouseMove(event)
         }
     }
 
     func stopTracking() {
+        guard isTracking else { return }
+        isTracking = false
         monitor.map { NSEvent.removeMonitor($0) }
         monitor = nil
     }
