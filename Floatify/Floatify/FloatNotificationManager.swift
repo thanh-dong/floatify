@@ -7,6 +7,7 @@ import os.log
 class FloatPanel: NSPanel {
     var horizontalIndex: Int = 0
     var notificationCorner: Corner = .bottomRight
+    var dismissController: DismissController?
 
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
@@ -74,9 +75,15 @@ class FloatNotificationManager {
         newPanel.hasShadow = false
         newPanel.ignoresMouseEvents = false
 
-        let view = FloatNotificationView(message: message, project: project, corner: corner) { [weak self] in
-            self?.dismiss(panel: newPanel)
-        }
+        let dismissController = DismissController()
+        newPanel.dismissController = dismissController
+        let view = FloatNotificationView(
+            message: message,
+            project: project,
+            corner: corner,
+            onTap: { [weak self] in self?.dismiss(panel: newPanel) },
+            dismissController: dismissController
+        )
         newPanel.contentView = NSHostingView(rootView: view)
         newPanel.orderFront(nil)
         panels.append(newPanel)
@@ -134,9 +141,18 @@ class FloatNotificationManager {
         if panel.notificationCorner == .cursorFollow {
             stopCursorTracking(for: panel)
         }
-        panel.orderOut(nil)
-        panels.removeAll { $0 === panel }
-        repositionPanels()
+
+        if let controller = panel.dismissController {
+            controller.dismiss { [weak self] in
+                panel.orderOut(nil)
+                self?.panels.removeAll { $0 === panel }
+                self?.repositionPanels()
+            }
+        } else {
+            panel.orderOut(nil)
+            panels.removeAll { $0 === panel }
+            repositionPanels()
+        }
     }
 
     private func dismissOldest() {

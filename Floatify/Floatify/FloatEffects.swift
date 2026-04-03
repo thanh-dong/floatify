@@ -20,20 +20,14 @@ struct Particle: Identifiable {
 class ParticleSystem: ObservableObject {
     @Published var particles: [Particle] = []
 
-    private var displayLink: CVDisplayLink?
-    private var emitter: ((inout [Particle]) -> Void)?
     private var timer: Timer?
 
     var particleLifetime: TimeInterval = 0.8
     var emissionRate: Int = 12
     var particleSpeed: CGFloat = 60
 
-    init() {
-        startEmitting()
-    }
-
     deinit {
-        stopEmitting()
+        stopTimer()
     }
 
     func emit(at position: CGPoint, direction: CGVector? = nil) {
@@ -56,9 +50,10 @@ class ParticleSystem: ObservableObject {
             )
             particles.append(particle)
         }
+        startTimerIfNeeded()
     }
 
-    func update(deltaTime: TimeInterval) {
+    private func update(deltaTime: TimeInterval) {
         for i in particles.indices {
             particles[i].position.x += particles[i].velocity.dx * deltaTime
             particles[i].position.y += particles[i].velocity.dy * deltaTime
@@ -69,12 +64,17 @@ class ParticleSystem: ObservableObject {
         }
 
         particles.removeAll { $0.opacity <= 0 }
+
+        if particles.isEmpty {
+            stopTimer()
+        }
     }
 
-    private func startEmitting() {
+    private func startTimerIfNeeded() {
+        guard timer == nil else { return }
         var lastUpdate = Date()
 
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             let now = Date()
             let delta = now.timeIntervalSince(lastUpdate)
@@ -83,11 +83,9 @@ class ParticleSystem: ObservableObject {
         }
     }
 
-    private func stopEmitting() {
+    private func stopTimer() {
         timer?.invalidate()
         timer = nil
-        displayLink.map { CVDisplayLinkStop($0) }
-        displayLink = nil
     }
 }
 
@@ -220,5 +218,31 @@ extension View {
 
     func shimmer() -> some View {
         modifier(ShimmerModifier())
+    }
+}
+
+// MARK: - Effect Animation Names
+
+extension String {
+    var lottieFileName: String {
+        switch self {
+        case "slide":   return "slide_entry"
+        case "fade":    return "fade_entry"
+        case "dropdown": return "dropdown_entry"
+        case "marquee": return "marquee_entry"
+        case "trail":   return "trail_entry"
+        default:        return "slide_entry"
+        }
+    }
+
+    var exitLottieFileName: String {
+        switch self {
+        case "slide", "dropdown", "marquee", "trail":
+            return "exit_slide"
+        case "fade":
+            return "exit_fade"
+        default:
+            return "exit_slide"
+        }
     }
 }

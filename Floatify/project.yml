@@ -10,6 +10,11 @@ settings:
     SWIFT_VERSION: "5.9"
     MACOSX_DEPLOYMENT_TARGET: "13.0"
 
+packages:
+  Lottie:
+    url: https://github.com/airbnb/lottie-ios
+    from: "4.4.0"
+
 targets:
   Floatify:
     type: application
@@ -32,6 +37,9 @@ targets:
         COMBINE_HIDPI_IMAGES: YES
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         ENABLE_HARDENED_RUNTIME: YES
+    dependencies:
+      - package: Lottie
+        product: Lottie
 
   floatify:
     type: tool
