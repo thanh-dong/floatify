@@ -942,11 +942,11 @@ Add new corner cases to the argument parser. Example based on current structure:
 
 ```swift
 // In argument parsing, add these new corner options:
-// --corner topLeft
-// --corner topRight
-// --corner center
-// --corner menubar
-// --corner horizontal
+// --position topLeft
+// --position topRight
+// --position center
+// --position menubar
+// --position horizontal
 
 // And add effect flag:
 // --effect sparkle

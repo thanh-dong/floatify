@@ -252,7 +252,7 @@ while !args.isEmpty {
     guard !args.isEmpty else { break }
     switch flag {
     case "--message":  message  = args.removeFirst()
-    case "--corner":   corner   = args.removeFirst()
+    case "--position":   corner   = args.removeFirst()
     case "--duration": duration = args.removeFirst()
     default: break
     }
@@ -291,11 +291,11 @@ floatify --message "Task complete!"
 # Full options
 floatify \
   --message "Task complete! Continue prompting" \
-  --corner bottomRight \
+  --position bottomRight \
   --duration 8
 
 # Bottom-left example
-floatify --message "Build succeeded" --corner bottomLeft
+floatify --message "Build succeeded" --position bottomLeft
 ```
 
 ### Symlink Installation (on first app launch)
@@ -326,7 +326,7 @@ Claude Code supports lifecycle hooks in `~/.claude/settings.json`.
         "hooks": [
           {
             "type": "command",
-            "command": "floatify --message 'Floatify is waiting' --corner bottomRight --duration 10"
+            "command": "floatify --message 'Floatify is waiting' --position bottomRight --duration 10"
           }
         ]
       }
@@ -337,7 +337,7 @@ Claude Code supports lifecycle hooks in `~/.claude/settings.json`.
         "hooks": [
           {
             "type": "command",
-            "command": "floatify --message 'Bash task done' --corner bottomLeft --duration 5"
+            "command": "floatify --message 'Bash task done' --position bottomLeft --duration 5"
           }
         ]
       }

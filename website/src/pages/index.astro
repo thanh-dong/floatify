@@ -157,7 +157,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <button onclick="copyCode(this)" class="text-xs text-terminal-text/60 hover:text-terminal-text px-2 py-1 rounded bg-[#313244] hover:bg-[#45475a] transition-colors">Copy</button>
         </div>
-        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Deploy done!" --corner bottomRight</code></pre>
+        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Deploy done!" --position bottomRight</code></pre>
       </div>
       <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-[#1e1e2e]">
         <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border bg-[#181825]">
@@ -168,7 +168,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <button onclick="copyCode(this)" class="text-xs text-terminal-text/60 hover:text-terminal-text px-2 py-1 rounded bg-[#313244] hover:bg-[#45475a] transition-colors">Copy</button>
         </div>
-        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Build failed" --corner bottomLeft --duration 10</code></pre>
+        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Build failed" --position bottomLeft --duration 10</code></pre>
       </div>
     </div>
   </section>
@@ -186,14 +186,14 @@ import Layout from '../layouts/Layout.astro';
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "floatify --message 'Floatify is waiting' --corner bottomRight --duration 10"
+        "command": "floatify --message 'Floatify is waiting' --position bottomRight --duration 10"
       }]
     }],
     "PostToolUse": [{
       "matcher": "Bash",
       "hooks": [{
         "type": "command",
-        "command": "floatify --message 'Bash task done' --corner bottomLeft --duration 5"
+        "command": "floatify --message 'Bash task done' --position bottomLeft --duration 5"
       }]
     }]
   }

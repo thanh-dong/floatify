@@ -587,7 +587,7 @@ while index < args.count {
     switch flag {
     case "--message":
         message = args[index]
-    case "--corner":
+    case "--position":
         corner = args[index]
     case "--duration":
         duration = args[index]
@@ -717,7 +717,7 @@ Expected: Floatify process running
 ```bash
 APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "Floatify.app" -type d | head -1)
 CLI_BIN="$APP_PATH/Contents/Resources/floatify"
-"$CLI_BIN" --message "Hello from CLI!" --corner bottomRight --duration 5
+"$CLI_BIN" --message "Hello from CLI!" --position bottomRight --duration 5
 ```
 Expected output: `Sent: Hello from CLI!`
 Expected visual: Float notification appears in bottom-right corner, bounces, auto-dismisses after 5s
@@ -726,7 +726,7 @@ Expected visual: Float notification appears in bottom-right corner, bounces, aut
 
 ```bash
 CLI_BIN="$APP_PATH/Contents/Resources/floatify"
-"$CLI_BIN" --message "Build succeeded" --corner bottomLeft --duration 3
+"$CLI_BIN" --message "Build succeeded" --position bottomLeft --duration 3
 ```
 Expected: Float notification appears in bottom-left corner
 
@@ -774,7 +774,7 @@ Add to `~/.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "floatify --message 'Floatify is waiting' --corner bottomRight --duration 10"
+            "command": "floatify --message 'Floatify is waiting' --position bottomRight --duration 10"
           }
         ]
       }
@@ -785,7 +785,7 @@ Add to `~/.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "floatify --message 'Bash task done' --corner bottomLeft --duration 5"
+            "command": "floatify --message 'Bash task done' --position bottomLeft --duration 5"
           }
         ]
       }
@@ -797,13 +797,13 @@ Add to `~/.claude/settings.json`:
 ## CLI Usage
 
 ```bash
-floatify --message "Task complete!" --corner bottomRight --duration 6
+floatify --message "Task complete!" --position bottomRight --duration 6
 ```
 
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--message` | Notification text | `"Task complete!"` |
-| `--corner` | `bottomLeft` or `bottomRight` | `bottomRight` |
+| `--position` | `bottomLeft` or `bottomRight` | `bottomRight` |
 | `--duration` | Auto-dismiss seconds | `6` |
 ```
 

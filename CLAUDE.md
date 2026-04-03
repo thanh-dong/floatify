@@ -75,14 +75,14 @@ Add to `~/.claude/settings.json`:
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "floatify --message 'Floatify is waiting' --corner bottomRight --duration 10"
+        "command": "floatify --message 'Floatify is waiting' --position bottomRight --duration 10"
       }]
     }],
     "PostToolUse": [{
       "matcher": "Bash",
       "hooks": [{
         "type": "command",
-        "command": "floatify --message 'Bash task done' --corner bottomLeft --duration 5"
+        "command": "floatify --message 'Bash task done' --position bottomLeft --duration 5"
       }]
     }]
   }

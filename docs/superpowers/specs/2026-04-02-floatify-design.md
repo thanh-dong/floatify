@@ -127,13 +127,13 @@ After install: `/usr/local/bin/floatify` (symlink to app bundle resource)
 ### Argument Parsing
 
 ```bash
-floatify --message "Task complete!" --corner bottomRight --duration 6
+floatify --message "Task complete!" --position bottomRight --duration 6
 ```
 
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--message` | Notification message text | `"Task complete!"` |
-| `--corner` | `bottomLeft` or `bottomRight` | `bottomRight` |
+| `--position` | `bottomLeft` or `bottomRight` | `bottomRight` |
 | `--duration` | Auto-dismiss seconds | `6` |
 
 ### FIFO Pipe Client Behavior
@@ -156,7 +156,7 @@ floatify --message "Task complete!" --corner bottomRight --duration 6
         "hooks": [
           {
             "type": "command",
-            "command": "floatify --message 'Floatify is waiting' --corner bottomRight --duration 10"
+            "command": "floatify --message 'Floatify is waiting' --position bottomRight --duration 10"
           }
         ]
       }
@@ -167,7 +167,7 @@ floatify --message "Task complete!" --corner bottomRight --duration 6
         "hooks": [
           {
             "type": "command",
-            "command": "floatify --message 'Bash task done' --corner bottomLeft --duration 5"
+            "command": "floatify --message 'Bash task done' --position bottomLeft --duration 5"
           }
         ]
       }
