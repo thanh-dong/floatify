@@ -2,25 +2,43 @@
 
 A lightweight macOS menu bar daemon that renders animated floating notifications in screen dead zones.
 
+## Features
+
+- Animated notifications appear in screen corners (bottom-left, bottom-right, top-left, top-right)
+- Cursor-follow mode for dynamic positioning
+- Sub-millisecond IPC via FIFO pipes
+- No Dock icon (LSUIElement app)
+- Stacking support with up to 3 visible notifications
+- Configurable via Claude Code hooks
+
 ## Installation
 
-1. Build the app:
-   ```bash
-   cd Floatify
-   xcodegen generate
-   xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Release build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
-   ```
+### Build from Source
 
-2. Open the built app:
-   ```bash
-   open ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/Floatify.app
-   ```
+```bash
+cd Floatify
+xcodegen generate
+xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Release build \
+  CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
+```
 
-3. Approve the CLI symlink prompt when it appears.
+### Run the App
+
+```bash
+open ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/Floatify.app
+```
+
+Approve the CLI symlink prompt when it appears.
+
+## Quick Start
+
+```bash
+floatify --message 'Task complete!' --corner bottomRight --duration 6
+```
 
 ## Claude Code Integration
 
-Add to `~/.claude/settings.json`:
+Add to your `~/.claude/settings.json`:
 
 ```json
 {
@@ -50,18 +68,14 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-## CLI Usage
-
-```bash
-floatify --message 'Task complete!' --corner bottomRight --duration 6
-```
+## CLI Reference
 
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--message` | Notification text | `"Task complete!"` |
 | `--corner` | Screen position | `bottomRight` |
 | `--duration` | Auto-dismiss seconds | `6` |
-| `--effect` | Animation effect (optional) | Position-specific |
+| `--effect` | Animation effect | Position-specific |
 
 ## Corner Positions
 
@@ -76,20 +90,33 @@ floatify --message 'Task complete!' --corner bottomRight --duration 6
 | `horizontal` | Horizontal layout at bottom-center |
 | `cursorFollow` | Follows cursor position |
 
-## Test Commands
+## Architecture
 
-```bash
-# Screen corners
-floatify --message 'Bottom Left!' --corner bottomLeft --duration 4
-floatify --message 'Bottom Right!' --corner bottomRight --duration 4
-floatify --message 'Top Left!' --corner topLeft --duration 4
-floatify --message 'Top Right!' --corner topRight --duration 4
-
-# Center positions
-floatify --message 'Center!' --corner center --duration 4
-floatify --message 'Below Menubar!' --corner menubar --duration 4
-floatify --message 'Horizontal!' --corner horizontal --duration 4
-
-# Special
-floatify --message 'Following Cursor!' --corner cursorFollow --duration 8
 ```
+Claude Code hooks -> floatify CLI -> FIFO pipe IPC -> Floatify.app -> NSPanel overlay
+```
+
+**Components:**
+- **Floatify.app** - Background GUI app owning the floating NSPanel overlay
+- **floatify CLI** - Sends messages to the app via FIFO pipe IPC
+
+**Technical highlights:**
+- FIFO pipe for sub-ms IPC (no network permissions needed)
+- NSPanel with `.nonactivatingPanel` to avoid stealing keyboard focus
+- `.popUpMenu` level floats above all apps including fullscreen windows
+- Max 3 stacked panels with 4px vertical offset
+
+**Pipe path:** `/var/tmp/floatify.pipe`
+
+**Protocol:** JSON payload
+```json
+{
+  "message": "Task complete!",
+  "corner": "bottomRight",
+  "duration": "6"
+}
+```
+
+## License
+
+MIT
