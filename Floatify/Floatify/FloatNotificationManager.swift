@@ -22,7 +22,7 @@ class FloatNotificationManager {
     static let shared = FloatNotificationManager()
     private var panels: [FloatPanel] = []
     private var cursorFollowTimers: [FloatPanel: Timer] = [:]
-    private let maxPanels = 3
+    private let maxPanels = 8
     private let maxHorizontalPanels = 5
     private let stackOffset: CGFloat = 4
     private let horizontalStackOffset: CGFloat = 8

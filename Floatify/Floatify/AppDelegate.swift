@@ -31,7 +31,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func testNotification() {
-        FloatNotificationManager.shared.show(message: "Test notification! 🦆", corner: .bottomRight, duration: 5, project: "Claude Code")
+        for corner in Corner.allCases {
+            FloatNotificationManager.shared.show(message: "Test: \(corner.rawValue)", corner: corner, duration: 5, project: "Test")
+        }
     }
 
     @objc private func quit() {
