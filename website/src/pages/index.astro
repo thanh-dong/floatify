@@ -77,6 +77,48 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
+  <!-- Animated Demo Section -->
+  <section class="py-16 px-6">
+    <div class="max-w-2xl mx-auto">
+      <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase text-center mb-10">See It In Action</p>
+      <div class="relative rounded-xl overflow-hidden border border-terminal-border" style="background: #111;">
+        <!-- macOS top bar -->
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-terminal-border" style="background: #0a0a0a;">
+          <div class="w-2.5 h-2.5 rounded-full bg-terminal-dot"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-terminal-dot"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-terminal-dot"></div>
+          <div class="flex-1 text-center">
+            <span class="text-[10px] text-terminal-text-muted font-mono">Finder</span>
+          </div>
+        </div>
+        <!-- Desktop area -->
+        <div class="relative" style="height: 220px; background: #0a0a0a;">
+          <!-- Fake desktop content -->
+          <div class="absolute top-4 left-4 w-12 h-12 rounded-lg bg-terminal-surface border border-terminal-border"></div>
+          <div class="absolute top-4 left-20 w-12 h-12 rounded-lg bg-terminal-surface border border-terminal-border"></div>
+          <!-- Notification panel (animated) -->
+          <div id="demo-notification" class="absolute bottom-4 right-4 rounded-lg border border-terminal-border p-3 flex items-center gap-3 opacity-0 translate-y-2" style="background: #1a1a1a; width: 200px; transition: opacity 0.4s ease, transform 0.4s ease;">
+            <div class="w-8 h-8 rounded bg-terminal-surface flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-terminal-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs text-terminal-text font-mono truncate">Build complete</p>
+              <p class="text-[10px] text-terminal-text-muted font-mono truncate">bottomRight</p>
+            </div>
+          </div>
+          <!-- Dock -->
+          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-1.5 pb-2 px-3 py-1 rounded-lg" style="background: rgba(255,255,255,0.05);">
+            <div class="w-4 h-4 rounded bg-terminal-surface border border-terminal-border"></div>
+            <div class="w-4 h-4 rounded bg-terminal-surface border border-terminal-border"></div>
+            <div class="w-4 h-4 rounded bg-terminal-surface border border-terminal-border"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Features Section -->
   <section class="py-20 px-6 max-w-6xl mx-auto">
     <h2 class="text-3xl font-bold text-terminal-text mb-12 text-center">Features</h2>
@@ -467,6 +509,35 @@ import Layout from '../layouts/Layout.astro';
         navbar.style.borderBottom = "none";
       }
     });
+
+    // Demo notification animation
+    const demoNotification = document.getElementById("demo-notification");
+    if (demoNotification) {
+      let demoObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            function showNotification() {
+              demoNotification.style.opacity = "1";
+              demoNotification.style.transform = "translateY(0)";
+              setTimeout(() => {
+                demoNotification.style.opacity = "0";
+                demoNotification.style.transform = "translateY(8px)";
+              }, 2500);
+            }
+            showNotification();
+            const interval = setInterval(() => {
+              if (!demoNotification) {
+                clearInterval(interval);
+                return;
+              }
+              showNotification();
+            }, 5500);
+            demoObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      demoObserver.observe(demoNotification.closest("section"));
+    }
   </script>
 <style>
   #cursor {
