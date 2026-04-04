@@ -197,12 +197,12 @@ import Layout from '../layouts/Layout.astro';
 
   <!-- Configuration Section -->
   <section id="configuration" class="py-20 px-6 max-w-4xl mx-auto">
-    <h2 class="text-2xl font-mono font-bold text-terminal-text mb-8">Configuration</h2>
-    <p class="text-terminal-text/70 mb-6">Floatify uses <code class="px-2 py-1 bg-[#313244] rounded text-sm">positions.json</code> for per-position notification settings. Place your custom config at <code class="px-2 py-1 bg-[#313244] rounded text-sm">~/.floatify/positions.json</code>.</p>
-    <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-[#1e1e2e]">
-      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border bg-[#181825]">
-        <span class="text-xs text-terminal-text/60 font-mono">positions.json</span>
-        <button onclick="copyCode(this)" class="text-xs text-terminal-text/60 hover:text-terminal-text px-2 py-1 rounded bg-[#313244] hover:bg-[#45475a] transition-colors">Copy</button>
+    <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Configuration</p>
+    <p class="text-terminal-text-secondary mb-6">Floatify uses <code class="px-2 py-1 bg-terminal-card rounded text-sm">positions.json</code> for per-position notification settings. Place your custom config at <code class="px-2 py-1 bg-terminal-card rounded text-sm">~/.floatify/positions.json</code>.</p>
+    <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
+      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
+        <span class="text-xs text-terminal-text-muted font-mono">positions.json</span>
+        <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
       </div>
       <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>{`{
   "bottomRight": {
@@ -220,20 +220,20 @@ import Layout from '../layouts/Layout.astro';
 }`}</code></pre>
     </div>
     <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-[#1e1e2e] border border-terminal-border rounded-lg p-4">
-        <p class="text-xs text-terminal-text/50 font-mono mb-1">margin</p>
+      <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <p class="text-xs text-terminal-text-muted font-mono mb-1">margin</p>
         <p class="text-sm text-terminal-text">Screen edge distance (px)</p>
       </div>
-      <div class="bg-[#1e1e2e] border border-terminal-border rounded-lg p-4">
-        <p class="text-xs text-terminal-text/50 font-mono mb-1">width</p>
+      <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <p class="text-xs text-terminal-text-muted font-mono mb-1">width</p>
         <p class="text-sm text-terminal-text">Panel width (px)</p>
       </div>
-      <div class="bg-[#1e1e2e] border border-terminal-border rounded-lg p-4">
-        <p class="text-xs text-terminal-text/50 font-mono mb-1">height</p>
+      <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <p class="text-xs text-terminal-text-muted font-mono mb-1">height</p>
         <p class="text-sm text-terminal-text">Panel height (px)</p>
       </div>
-      <div class="bg-[#1e1e2e] border border-terminal-border rounded-lg p-4">
-        <p class="text-xs text-terminal-text/50 font-mono mb-1">stackOffset</p>
+      <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <p class="text-xs text-terminal-text-muted font-mono mb-1">stackOffset</p>
         <p class="text-sm text-terminal-text">Stack spacing (px)</p>
       </div>
     </div>
@@ -270,38 +270,38 @@ import Layout from '../layouts/Layout.astro';
 
   <!-- CLI Reference -->
   <section id="cli-reference" class="py-20 px-6 max-w-4xl mx-auto">
-    <h2 class="text-2xl font-mono font-bold text-terminal-text mb-8">CLI Reference</h2>
+    <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">CLI Reference</p>
     <div class="space-y-6">
-      <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-[#1e1e2e]">
-        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border bg-[#181825]">
+      <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
           <div class="flex gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-[#f38ba8]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#f9e2af]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#a6e3a1]"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
           </div>
-          <button onclick="copyCode(this)" class="text-xs text-terminal-text/60 hover:text-terminal-text px-2 py-1 rounded bg-[#313244] hover:bg-[#45475a] transition-colors">Copy</button>
+          <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
         <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Task complete!"</code></pre>
       </div>
-      <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-[#1e1e2e]">
-        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border bg-[#181825]">
+      <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
           <div class="flex gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-[#f38ba8]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#f9e2af]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#a6e3a1]"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
           </div>
-          <button onclick="copyCode(this)" class="text-xs text-terminal-text/60 hover:text-terminal-text px-2 py-1 rounded bg-[#313244] hover:bg-[#45475a] transition-colors">Copy</button>
+          <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
         <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Deploy done!" --position bottomRight</code></pre>
       </div>
-      <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-[#1e1e2e]">
-        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border bg-[#181825]">
+      <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
           <div class="flex gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-[#f38ba8]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#f9e2af]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#a6e3a1]"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
           </div>
-          <button onclick="copyCode(this)" class="text-xs text-terminal-text/60 hover:text-terminal-text px-2 py-1 rounded bg-[#313244] hover:bg-[#45475a] transition-colors">Copy</button>
+          <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
         <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Build failed" --position bottomLeft --duration 10</code></pre>
       </div>
@@ -310,11 +310,11 @@ import Layout from '../layouts/Layout.astro';
 
   <!-- Claude Code Integration -->
   <section id="claude-code-integration" class="py-20 px-6 max-w-4xl mx-auto">
-    <h2 class="text-2xl font-mono font-bold text-terminal-text mb-8">Claude Code Integration</h2>
-    <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-[#1e1e2e]">
-      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border bg-[#181825]">
-        <span class="text-xs text-terminal-text/60 font-mono">settings.json</span>
-        <button onclick="copyCode(this)" class="text-xs text-terminal-text/60 hover:text-terminal-text px-2 py-1 rounded bg-[#313244] hover:bg-[#45475a] transition-colors">Copy</button>
+    <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Claude Code Integration</p>
+    <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
+      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
+        <span class="text-xs text-terminal-text-muted font-mono">settings.json</span>
+        <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
       </div>
       <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>{`{
   "hooks": {
