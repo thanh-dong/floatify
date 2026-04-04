@@ -1,16 +1,16 @@
-# Floatify — macOS Floating Notification App for Claude Code
+# Floatify - macOS Floating Notification App for Claude Code
 
-**A lightweight macOS menu bar daemon that renders animated floating notifications in the screen's dead zones (bottom-left / bottom-right corners), triggered by Claude Code task completion hooks.**
+A macOS menu bar daemon that renders animated floating notifications at configurable screen positions, triggered by Claude Code hooks. Features Lottie animations, sound effects, cursor-following mode, and per-position layout config.
 
 ---
 
 ## Overview
 
-When working with Claude Code CLI, there is often unused screen real estate in the bottom corners — the gap between the active editor window and the macOS Dock. Floatify exploits this dead zone to surface non-intrusive, attention-grabbing notifications that signal when Claude Code has finished a task and is waiting for the next prompt.
+Floatify exploits unused screen real estate (gaps between editor windows and the Dock) to surface non-intrusive, attention-grabbing notifications. When Claude Code finishes a task, a floating panel appears with an animated duck icon, project label, and message - then auto-dismisses.
 
-The system has two components:
-1. **Floatify.app** — a background GUI app (no Dock icon) that owns the floating NSPanel overlay
-2. **`floatify` CLI tool** — a thin binary that sends a message to the running app via FIFO pipe IPC
+Two components:
+1. Floatify.app - Background GUI app (LSUIElement, no Dock icon) that owns floating NSPanel overlays
+2. floatify CLI - Thin binary that sends messages to the app via FIFO pipe IPC
 
 ---
 
@@ -18,269 +18,203 @@ The system has two components:
 
 ```
 Claude Code (CLI)
-    │
-    │  ~/.claude/settings.json hooks (PostToolUse / Stop)
-    ▼
+    |
+    |  ~/.claude/settings.json hooks (PostToolUse / Stop)
+    v
 floatify CLI  (/usr/local/bin/floatify)
-    │
-    │  FIFO pipe IPC  "/var/tmp/floatify.pipe"
-    │  latency < 1ms, no network, no permissions needed
-    ▼
+    |
+    |  FIFO pipe IPC  "/var/tmp/floatify.pipe"
+    |  latency < 1ms, no network, no permissions needed
+    v
 Floatify.app  (LSUIElement, runs at Login, no Dock icon)
-    │
-    │  NSPanel  (.nonactivatingPanel, .popUpMenu level)
-    │  NSScreen.frame  →  absolute bottom-left / bottom-right
-    ▼
-Floating Notification  (bounces, auto-dismisses after N seconds)
+    |
+    |  FloatNotificationManager
+    |    -> FloatPanel (NSPanel, .nonactivatingPanel, .popUpMenu level)
+    |    -> FloatNotificationView (SwiftUI + Lottie animations)
+    |    -> PositionConfigManager (per-corner layout)
+    |    -> SoundManager (pop/tink/whoosh)
+    |    -> CursorTracker (cursorFollow mode)
+    v
+Floating Notification  (animated entry, idle animations, timed dismiss)
 ```
 
 ---
 
-## Component 1 — Floatify.app
+## Component 1 - Floatify.app
 
-### App Configuration (`Info.plist`)
+### App Configuration (Info.plist)
 
 ```xml
-<!-- Run silently in background, no Dock icon, no Cmd+Tab entry -->
 <key>LSUIElement</key>
 <true/>
-
-<!-- Auto-launch at Login (register via SMAppService or Login Items) -->
-<key>LSBackgroundOnly</key>
-<false/>
 ```
 
-### IPC Server — FIFO Pipe Listener
+LSUIElement = true means no Dock icon, no Cmd+Tab entry. The app runs silently with only a menu bar item.
 
-The app creates a named FIFO pipe at `/var/tmp/floatify.pipe` and listens for JSON payloads from the CLI tool.
+### Build System
 
-```swift
-// AppDelegate.swift
-import AppKit
+Uses XcodeGen (`project.yml`) instead of a manual Xcode project. Run `cd Floatify && xcodegen generate` to create the `.xcodeproj`.
 
-class AppDelegate: NSObject, NSApplicationDelegate {
-    private var pipeSource: DispatchSourceRead?
-    private let pipePath = "/var/tmp/floatify.pipe"
+Dependencies:
+- Lottie (airbnb/lottie-ios, from 4.4.0) - SPM package for animated backgrounds
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        setupPipeListener()
-    }
+### IPC Server - FIFO Pipe Listener
 
-    private func setupPipeListener() {
-        // Create pipe if it doesn't exist
-        if !FileManager.default.fileExists(atPath: pipePath) {
-            mkfifo(pipePath, 0o666)
-        }
+The app creates a named FIFO pipe at `/var/tmp/floatify.pipe` and listens for JSON payloads. On launch, it removes any stale pipe and recreates it to avoid stale state from previous runs.
 
-        // Open pipe for reading
-        let pipeFd = open(pipePath, O_RDONLY | O_NONBLOCK)
-        guard pipeFd >= 0 else { return }
+The JSON handler parses these fields:
+- `message` (String) - notification text, default "Task complete!"
+- `project` (String) - source project name, default "Claude Code"
+- `corner` (String) - one of 8 positions, default "bottomRight"
+- `duration` (Double) - auto-dismiss timeout in seconds, default 6.0
+- `effect` (String, optional) - override animation effect name
 
-        // Set up dispatch source to read from pipe
-        pipeSource = DispatchSource.makeReadSource(fileDescriptor: pipeFd, queue: .main)
-        pipeSource?.setEventHandler { [weak self] in
-            var buffer = [UInt8](repeating: 0, count: 4096)
-            let bytesRead = read(pipeFd, &buffer, buffer.count)
-            if bytesRead > 0 {
-                let data = Data(bytes: buffer, count: bytesRead)
-                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                    self?.handleJSON(json)
-                }
-            }
-        }
-        pipeSource?.resume()
-    }
+### Corner Positions
 
-    private func handleJSON(_ json: [String: Any]) {
-        let message = json["message"] as? String ?? "Task complete!"
-        let corner: Corner = json["corner"] == "bottomLeft" ? .bottomLeft : .bottomRight
-        let duration = json["duration"] as? TimeInterval ?? 6.0
+8 supported positions, each with a default animation effect and optional sound:
 
-        FloatNotificationManager.shared.show(message: message, corner: corner, duration: duration)
-    }
-}
-```
+| Corner | Effect | Sound |
+|--------|--------|-------|
+| bottomLeft | slide | - |
+| bottomRight | slide | - |
+| topLeft | slide | - |
+| topRight | slide | - |
+| center | fade | pop |
+| menubar | dropdown | tink |
+| horizontal | marquee | - |
+| cursorFollow | trail | - |
 
-### Corner Positioning — `NSScreen.frame` (Absolute Edges)
+Uses `NSScreen.main?.frame` for absolute screen-edge positioning (not `visibleFrame`, which respects Dock).
 
-Uses `NSScreen.main?.frame` for absolute positioning at screen bottom edges (not `visibleFrame` which respects Dock).
+### Position Configuration
 
-```swift
-enum Corner { case bottomLeft, bottomRight }
+`PositionConfigManager` loads layout per corner from:
+1. Bundled defaults at `Floatify/Resources/positions.json`
+2. User overrides at `~/.floatify/positions.json` (merged on top)
 
-func cornerOrigin(corner: Corner, size: CGSize, padding: CGFloat = 16) -> CGPoint {
-    guard let frame = NSScreen.main?.frame else { return .zero }
-    switch corner {
-    case .bottomLeft:
-        return CGPoint(x: frame.minX + padding, y: frame.minY + padding)
-    case .bottomRight:
-        return CGPoint(x: frame.maxX - size.width - padding, y: frame.minY + padding)
-    }
-}
-```
+Each position config has:
+- `margin` - padding from screen edge in points
+- `width` - panel width (default 280)
+- `height` - panel height (default 68)
+- `stackOffset` - vertical spacing between stacked panels
 
-### NSPanel — Non-Activating Floating Overlay
+Defaults are hardcoded as fallback if no JSON files exist.
+
+### NSPanel - Non-Activating Floating Overlay
 
 ```swift
 class FloatPanel: NSPanel {
-    // Never steal focus from the active editor
+    var horizontalIndex: Int = 0
+    var notificationCorner: Corner = .bottomRight
+    var dismissController: DismissController?
+
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
-
-    // Allow rendering outside normal screen constraints
     override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect {
         return frameRect
     }
 }
-
-class FloatNotificationManager {
-    static let shared = FloatNotificationManager()
-    private var panels: [FloatPanel] = []
-
-    func show(message: String, corner: Corner, duration: TimeInterval = 6) {
-        DispatchQueue.main.async {
-            let size = CGSize(width: 280, height: 68)
-            let origin = self.cornerOrigin(corner: corner, size: size)
-
-            let panel = FloatPanel(
-                contentRect: NSRect(origin: origin, size: size),
-                styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
-                backing: .buffered,
-                defer: false
-            )
-            panel.level = .popUpMenu
-            panel.collectionBehavior = [
-                .canJoinAllSpaces,
-                .fullScreenAuxiliary
-            ]
-            panel.isOpaque = false
-            panel.backgroundColor = .clear
-            panel.hasShadow = false
-            panel.ignoresMouseEvents = false
-
-            let view = FloatNotificationView(message: message) {
-                self.dismiss(panel: panel)
-            }
-            panel.contentView = NSHostingView(rootView: view)
-            panel.orderFront(nil)
-            self.panels.append(panel)
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                self.dismiss(panel: panel)
-            }
-        }
-    }
-
-    private func dismiss(panel: FloatPanel) {
-        panel.orderOut(nil)
-        panels.removeAll { $0 === panel }
-    }
-}
 ```
 
-### SwiftUI Notification View
+Panel properties:
+- level: .popUpMenu (floats above all apps including fullscreen)
+- collectionBehavior: [.canJoinAllSpaces, .fullScreenAuxiliary]
+- isOpaque: false, backgroundColor: .clear, hasShadow: false
+- ignoresMouseEvents: false (tappable to dismiss early)
 
-```swift
-struct FloatNotificationView: View {
-    let message: String
-    var onTap: (() -> Void)?
+### Notification Stacking
 
-    @State private var isVisible = false
-    @State private var bounce = false
+- Max 8 panels visible at once (`maxPanels = 8`)
+- Max 5 horizontal panels (`maxHorizontalPanels = 5`)
+- Vertical stack offset per panel from PositionConfig (default 4px)
+- Horizontal stack offset of 8px
+- When cap is reached, oldest panel is dismissed first
+- When any panel is dismissed, remaining panels reposition
 
-    var body: some View {
-        HStack(spacing: 10) {
-            Text("Floatify")
-                .font(.system(size: 32))
-                .scaleEffect(bounce ? 1.2 : 1.0)
-                .animation(
-                    .spring(response: 0.3, dampingFraction: 0.5)
-                    .repeatCount(3, autoreverses: true),
-                    value: bounce
-                )
+### Cursor Following
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Claude Code")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.secondary)
-                Text(message)
-                    .font(.system(size: 13, weight: .medium))
-                    .lineLimit(2)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.18), radius: 10, x: 0, y: 4)
-        )
-        .opacity(isVisible ? 1 : 0)
-        .offset(y: isVisible ? 0 : 24)
-        .onTapGesture { onTap?() }
-        .onAppear {
-            withAnimation(.spring(response: 0.45, dampingFraction: 0.68)) {
-                isVisible = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                bounce = true
-            }
-        }
-    }
-}
-```
+`CursorTracker` provides cursor-following notifications via `NSEvent.mouseLocation` polled at 30fps via a Timer:
+- When cursor is within 100px of a screen corner, panel snaps to that corner
+- Otherwise panel follows cursor with a 20px right / 10px below offset
+- Panel position is clamped to screen bounds with 20px edge padding
+
+### DismissController
+
+Manages animated entry and exit transitions:
+- Entry: scale from 0.85 to 1.0 with spring animation, opacity 0 to 1
+- Exit: scale from 1.0 to 0.85 with easeOut over 0.25s, opacity 0
+- Calls `onDismissComplete` callback after exit animation finishes
+- Panel is not removed from screen until exit animation completes
 
 ---
 
-## Component 2 — `floatify` CLI Tool
+## Animation System
 
-A separate **Command Line Tool** Xcode target, compiled into the app bundle at `Floatify.app/Contents/Resources/floatify`, then symlinked to `/usr/local/bin/floatify` on first launch.
+### Lottie Entry Animations
 
-### CLI Source (`main.swift`)
+`LottiePanelBackground` is an NSViewRepresentable wrapping `LottieAnimationView`. Each corner has a default Lottie animation:
 
-```swift
-import Foundation
+| Effect name | Lottie file |
+|-------------|-------------|
+| slide | slide_entry.json |
+| fade | fade_entry.json |
+| dropdown | dropdown_entry.json |
+| marquee | marquee_entry.json |
+| trail | trail_entry.json |
 
-// --- Argument parsing ---
-var message = "Task complete!"
-var corner  = "bottomRight"
-var duration = "6"
+Exit animations:
+- slide/dropdown/marquee/trail use exit_slide.json
+- fade uses exit_fade.json
 
-var args = Array(CommandLine.arguments.dropFirst())
-while !args.isEmpty {
-    let flag = args.removeFirst()
-    guard !args.isEmpty else { break }
-    switch flag {
-    case "--message":  message  = args.removeFirst()
-    case "--position":   corner   = args.removeFirst()
-    case "--duration": duration = args.removeFirst()
-    default: break
-    }
-}
+Lottie files live in `Floatify/Resources/Animations/`.
 
-// --- Send via FIFO pipe ---
-let pipePath = "/var/tmp/floatify.pipe"
+### Idle Animations (IdleAnimations.swift)
 
-guard let pipeFd = open(pipePath, O_WRONLY | O_NONBLOCK) else {
-    fputs("Floatify.app is not running\n", stderr)
-    exit(1)
-}
+After the Lottie entry completes, these SwiftUI modifiers activate on the duck icon:
+- `bobbing` - scale 1.0x to 1.04x with spring, repeating forever
+- `glowPulse` - yellow shadow radius oscillating, repeating forever
+- `floatDrift` - 2px vertical offset with easeInOut, repeating forever
+- `hoverScale` - scale to 1.15x on mouse hover
 
-let payload: [String: String] = [
-    "message":  message,
-    "corner":   corner,
-    "duration": duration
-]
-let data = try! JSONSerialization.data(withJSONObject: payload)
-let bytesWritten = write(pipeFd, data.bytes, data.count)
+### Particle System (FloatEffects.swift)
 
-if bytesWritten > 0 {
-    print("Sent: \(message)")
-} else {
-    fputs("Pipe write failed\n", stderr)
-    exit(1)
-}
-```
+Used by cursorFollow mode. Emits particles at a position with random velocity, angle, and opacity. Particles fade out over 0.8s lifetime. Rendered via Canvas at 30fps.
+
+Also includes reusable effects:
+- `GlowModifier` - multi-layered shadow glow
+- `ShimmerModifier` - animated gradient overlay with linear sweep
+- `RippleView` - expanding circle with fading stroke
+
+---
+
+## Sound Effects
+
+`SoundManager` loads and plays system sounds from `Sounds/` directory in the bundle:
+- pop - used by center corner
+- tink - used by menubar corner
+- whoosh - loaded but not assigned to any default corner
+
+Playback volume is 0.3. Sounds play on entry via `SoundManager.shared.play(effectiveSound)`.
+
+---
+
+## Component 2 - floatify CLI Tool
+
+A separate Command Line Tool Xcode target, compiled into the app bundle, then symlinked to `/usr/local/bin/floatify` on first launch.
+
+### Arguments
+
+| Flag | Alias | Type | Default | Description |
+|------|-------|------|---------|-------------|
+| --message | - | String | "Task complete!" | Notification text |
+| --position | --corner | String | "bottomRight" | Screen position |
+| --duration | - | Double | 6 | Auto-dismiss timeout (seconds) |
+| --project | - | String | "Claude Code" | Source project label |
+| --effect | - | String | nil | Override animation effect |
+
+Valid corner values: bottomLeft, bottomRight, topLeft, topRight, center, menubar, horizontal, cursorFollow.
+
+The CLI validates the corner and duration before writing to the pipe. On failure, it prints a descriptive error to stderr with the duck emoji prefix.
 
 ### CLI Usage
 
@@ -292,31 +226,25 @@ floatify --message "Task complete!"
 floatify \
   --message "Task complete! Continue prompting" \
   --position bottomRight \
-  --duration 8
+  --duration 8 \
+  --project "MyApp"
 
-# Bottom-left example
-floatify --message "Build succeeded" --position bottomLeft
+# Cursor-follow mode
+floatify --message "Build succeeded" --position cursorFollow
+
+# With custom effect
+floatify --message "Deploy done" --position center --effect fade
 ```
 
-### Symlink Installation (on first app launch)
+### Symlink Installation
 
-```swift
-// In AppDelegate.applicationDidFinishLaunching
-func installCLIToolIfNeeded() {
-    let src  = Bundle.main.url(forResource: "floatify", withExtension: nil)!
-    let dest = URL(fileURLWithPath: "/usr/local/bin/floatify")
-    guard !FileManager.default.fileExists(atPath: dest.path) else { return }
-
-    // Requires user approval — show an NSAlert first
-    try? FileManager.default.createSymbolicLink(at: dest, withDestinationURL: src)
-}
-```
+On first launch, AppDelegate symlinks the bundled `floatify` binary to `/usr/local/bin/floatify`. A UserDefaults flag (`CLISymlinkInstalled`) prevents re-installation. If the symlink already exists, it is removed and recreated.
 
 ---
 
-## Component 3 — Claude Code Integration
+## Component 3 - Claude Code Integration
 
-Claude Code supports lifecycle hooks in `~/.claude/settings.json`.
+Claude Code hooks in `~/.claude/settings.json`:
 
 ```json
 {
@@ -348,9 +276,9 @@ Claude Code supports lifecycle hooks in `~/.claude/settings.json`.
 
 | Hook | When it fires | Suggested use |
 |------|---------------|---------------|
-| `Stop` | Claude finishes a full task and stops | Main "come back" notification — bottom-right |
-| `PostToolUse` | After each individual tool call | Quick status per action — bottom-left |
-| `PreToolUse` | Before a tool runs | Optional: "starting..." indicator |
+| Stop | Claude finishes a full task | Main notification, bottom-right |
+| PostToolUse | After each tool call | Per-action status, bottom-left or center |
+| PreToolUse | Before a tool runs | Optional "starting..." indicator |
 
 ---
 
@@ -358,64 +286,76 @@ Claude Code supports lifecycle hooks in `~/.claude/settings.json`.
 
 ```
 Floatify/
-├── Floatify.xcodeproj
-├── Floatify/                    ← GUI app target
-│   ├── AppDelegate.swift         ← FIFO pipe server + menu bar + symlink installer
-│   ├── FloatNotificationManager.swift
-│   ├── FloatNotificationView.swift
-│   ├── Corner.swift
-│   ├── main.swift
-│   └── Info.plist               ← LSUIElement = true
-├── cli/                         ← CLI tool target
-│   └── main.swift               ← Argument parser + FIFO pipe client
-└── README.md
+├── project.yml                          XcodeGen config
+├── Floatify.xcodeproj/                  Generated Xcode project
+├── Floatify/                            macOS App target
+│   ├── main.swift                       App entry point
+│   ├── AppDelegate.swift                FIFO pipe server + menu bar + symlink install
+│   ├── FloatNotificationManager.swift    NSPanel factory + stacking + repositioning
+│   ├── FloatNotificationView.swift       SwiftUI notification view + Lottie integration
+│   ├── FloatEffects.swift               Particle system, glow, shimmer, ripple effects
+│   ├── IdleAnimations.swift             Bob, glowPulse, floatDrift, hoverScale modifiers
+│   ├── LottieAnimator.swift             DismissController + LottiePanelBackground
+│   ├── SoundManager.swift               NSSound loading and playback
+│   ├── CursorTracker.swift              Cursor position tracking + corner snapping
+│   ├── PositionConfigManager.swift      JSON-based per-corner layout config
+│   ├── Corner.swift                     Corner enum with default effects/sounds
+│   ├── Info.plist                       LSUIElement = true
+│   ├── Assets.xcassets/                 App icon
+│   ├── Resources/
+│   │   ├── positions.json               Default position configs
+│   │   └── Animations/                  Lottie JSON files
+│   │       ├── slide_entry.json
+│   │       ├── fade_entry.json
+│   │       ├── dropdown_entry.json
+│   │       ├── marquee_entry.json
+│   │       ├── trail_entry.json
+│   │       ├── exit_slide.json
+│   │       └── exit_fade.json
+│   └── cli/                             CLI tool target
+│       ├── main.swift                   Argument parser + FIFO pipe client
+│       └── Info.plist
+└── Floatify Plan.md                     This file
 ```
 
-**Xcode targets:**
-- `Floatify` — macOS App, deployment target macOS 13+
-- `floatify` — Command Line Tool, linked into app bundle via Copy Files build phase
-
----
-
-## Implementation Milestones
-
-| Step | Task | Estimated effort |
-|------|------|-----------------|
-| 1 | Create Xcode project with two targets (App + CLI Tool) | 15 min |
-| 2 | Implement FIFO pipe server in AppDelegate | 30 min |
-| 3 | Build `FloatPanel` + `FloatNotificationManager` with `frame` positioning | 45 min |
-| 4 | Build `FloatNotificationView` SwiftUI with bounce animation | 30 min |
-| 5 | Implement CLI `main.swift` with arg parser + FIFO pipe client | 20 min |
-| 6 | Wire CLI binary into app bundle via Copy Files phase + symlink on launch | 20 min |
-| 7 | Add Claude Code hooks to `~/.claude/settings.json` | 5 min |
-| 8 | Test: bottom-left, bottom-right, multi-monitor, fullscreen edge cases | 30 min |
-
-**Total: ~3 hours for a working v1**
+Xcode targets:
+- Floatify - macOS App, deployment target macOS 13+, links Lottie SPM package
+- floatify - Command Line Tool, no external dependencies
 
 ---
 
 ## Key Technical Decisions
 
-**Why FIFO pipe over CFMessagePort or HTTP?**
+Why FIFO pipe over CFMessagePort or HTTP?
 FIFO pipe is macOS-native, requires no server setup, has sub-millisecond latency, and works with zero network permissions. No firewall or security approval dialogs needed.
 
-**Why `NSScreen.frame` over `NSScreen.visibleFrame`?**
-`frame` gives absolute screen edges ( Dock hidden or not ). `visibleFrame` respects Dock size/position, which causes notifications to appear above the Dock when it auto-hides. Using `frame` ensures notifications always appear at true screen edges.
+Why `NSScreen.frame` over `NSScreen.visibleFrame`?
+`frame` gives absolute screen edges regardless of Dock state. `visibleFrame` respects Dock size/position, which causes notifications to jump when the Dock auto-hides.
 
-**Why `NSPanel` with `.nonactivatingPanel` over `NSWindow`?**
-`NSPanel` with `.nonactivatingPanel` prevents the notification from stealing keyboard focus from the active editor — critical when Claude Code is waiting and the developer is mid-typing.
+Why `NSPanel` with `.nonactivatingPanel` over `NSWindow`?
+Prevents the notification from stealing keyboard focus from the active editor. Critical when Claude Code is waiting and the developer is mid-typing.
 
-**Why `.popUpMenu` window level?**
-This level floats above all standard app windows without requiring the app to claim `.screenSaver` level (which would block mouse events on underlying apps). Combined with `.fullScreenAuxiliary`, it appears alongside fullscreen apps as well.
+Why `.popUpMenu` window level?
+Floats above all standard app windows without blocking mouse events on underlying apps. Combined with `.fullScreenAuxiliary`, it appears alongside fullscreen apps.
+
+Why XcodeGen over manual .xcodeproj?
+Declarative `project.yml` is easier to maintain and diff than the binary-ish Xcode project format. Generates the `.xcodeproj` on demand.
+
+Why Lottie over Core Animation?
+Lottie animations are authored in After Effects and exported as JSON - no code changes needed to tweak animations. The `lottie-ios` library renders them efficiently on the GPU. Only 7 small JSON files in the bundle.
 
 ---
 
-## Edge Cases & Mitigations
+## Edge Cases and Mitigations
 
 | Edge case | Mitigation |
 |-----------|------------|
-| Multiple monitors | Use `NSScreen.screens` to pick the screen where the active editor lives, or default to `NSScreen.main` |
-| Dock on left/right side | Frame-based positioning is always at absolute edges regardless of Dock position |
-| Dock set to auto-hide | Frame-based positioning means notifications stay at absolute bottom edge |
-| Floatify.app not running when CLI fires | CLI prints `Floatify.app is not running` and exits with code 1 — add a fallback: `osascript -e 'display notification "Task done" with title "Claude Code"'` |
-| Notification spam (rapid successive triggers) | Stagger panels with a 4px vertical offset per queued notification; cap queue at 3 visible at once |
+| Multiple monitors | Defaults to `NSScreen.main`; multi-monitor-aware positioning is a future enhancement |
+| Dock on left/right side | Frame-based positioning always uses absolute edges |
+| Dock set to auto-hide | Frame-based positioning keeps notifications at true screen edges |
+| Floatify.app not running | CLI prints descriptive error with duck emoji and exits code 1 |
+| Rapid successive triggers | Panels cap at 8 total (5 horizontal); oldest dismissed first; 4px vertical stacking |
+| Pipe stale state | AppDelegate removes and recreates pipe on every launch |
+| Symlink conflicts | AppDelegate removes existing symlink before creating new one |
+| Invalid CLI arguments | Corner and duration validated before pipe write; helpful error messages |
+| Fullscreen apps | `.fullScreenAuxiliary` + `.canJoinAllSpaces` ensures notifications appear |
