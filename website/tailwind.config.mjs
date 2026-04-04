@@ -9,17 +9,17 @@ export default {
     extend: {
       colors: {
         terminal: {
-          bg: '#0a0a0a',
-          card: '#111',
-          surface: '#1a1a1a',
-          border: '#1a1a1a',
-          'border-hover': '#262626',
-          text: '#e5e5e5',
-          'text-secondary': '#737373',
-          'text-tertiary': '#525252',
-          'text-muted': '#404040',
-          'text-faint': '#333',
-          dot: '#404040',
+          bg: '#2e3440',
+          card: '#3b4252',
+          surface: '#434c5e',
+          border: '#4c566a',
+          'border-hover': '#5e81ac',
+          text: '#eceff4',
+          'text-secondary': '#d8dee9',
+          'text-tertiary': '#81a1c1',
+          'text-muted': '#4c566a',
+          'text-faint': '#434c5e',
+          dot: '#4c566a',
         },
       },
       fontFamily: {

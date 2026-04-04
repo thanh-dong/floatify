@@ -1,9 +1,19 @@
 ---
 interface Props {
   title: string;
+  description?: string;
+  image?: string;
 }
 
-const { title } = Astro.props;
+const {
+  title,
+  description = "Floatify - A macOS menu bar app that renders animated floating notifications in screen dead zones. Sub-millisecond IPC via FIFO pipe, integrates with Claude Code hooks.",
+  image = "/floatify-og-image.png"
+} = Astro.props;
+
+const siteUrl = "https://floatify.app";
+const twitterHandle = "@hieppp";
+const githubUrl = "https://github.com/hieppp/floatify";
 ---
 
 <!doctype html>
@@ -11,9 +21,75 @@ const { title } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary Meta Tags -->
     <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <meta name="author" content="hieppp" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={siteUrl} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={siteUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${siteUrl}${image}`} />
+    <meta property="og:site_name" content="Floatify" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={siteUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${siteUrl}${image}`} />
+    <meta name="twitter:creator" content={twitterHandle} />
+
+    <!-- GitHub -->
+    <meta name="github:url" content={githubUrl} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Floatify",
+        "description": "A macOS menu bar daemon that renders animated floating notifications in screen dead zones. Integrates with Claude Code hooks via sub-millisecond FIFO pipe IPC.",
+        "url": "https://floatify.app",
+        "applicationCategory": "DeveloperTool",
+        "operatingSystem": "macOS",
+        "programmingLanguage": "Swift",
+        "license": "https://opensource.org/licenses/MIT",
+        "author": {
+          "@type": "Person",
+          "name": "hieppp",
+          "url": "https://github.com/hieppp"
+        },
+        "repository": {
+          "@type": "SoftwareSourceCode",
+          "url": "https://github.com/hieppp/floatify"
+        },
+        "keywords": ["macOS", "notification", "menu bar", "floating notifications", "developer tools", "Claude Code", "hook", "IPC", "FIFO"],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "screenshot": "https://floatify.app/floatify-screenshot.png",
+        "softwareVersion": "1.0.0"
+      }
+    </script>
+
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#2e3440" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   </head>
-  <body class="bg-terminal-bg text-terminal-text font-mono antialiased selection:bg-white/10">
+  <body class="bg-terminal-bg text-terminal-text font-mono antialiased selection:bg-[#88c0d0]/20">
     <slot />
   </body>
 </html>

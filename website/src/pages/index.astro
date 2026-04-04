@@ -3,10 +3,19 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Floatify - Floating Notifications for Developers">
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#88c0d0] focus:text-[#2e3440] focus:rounded-lg">
+    Skip to main content
+  </a>
+
   <!-- Navigation -->
-  <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="text-xl font-bold text-terminal-text">Floatify</div>
+  <header>
+    <nav id="navbar" aria-label="Main navigation" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+      <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="/" class="text-xl font-bold text-terminal-text" aria-label="Floatify home">
+          Floatify
+          <span class="sr-only"> - Floating Notifications for Developers</span>
+        </a>
       <a
         href="https://github.com/hieppp/floatify"
         target="_blank"
@@ -20,15 +29,22 @@ import Layout from '../layouts/Layout.astro';
       </a>
     </div>
   </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content">
 
   <!-- Hero Section -->
-  <section class="min-h-screen flex flex-col items-center justify-center px-6 pt-20">
+  <section aria-labelledby="hero-heading" class="min-h-screen flex flex-col items-center justify-center px-6 pt-20">
     <div class="text-center max-w-3xl mx-auto mb-12">
-      <h1 class="text-5xl md:text-6xl font-bold text-terminal-text mb-6 leading-tight">
+      <h1 id="hero-heading" class="text-5xl md:text-6xl font-bold text-terminal-text mb-6 leading-tight">
         Floating Notifications<br/>for Developers
       </h1>
       <p class="text-xl text-terminal-text-secondary mb-8">
         Sub-millisecond notifications that never steal your focus
+      </p>
+      <p class="text-lg text-terminal-text-tertiary">
+        A macOS menu bar app that displays non-intrusive floating notifications in screen dead zones. Built for developers who use Claude Code hooks.
       </p>
     </div>
 
@@ -36,10 +52,10 @@ import Layout from '../layouts/Layout.astro';
     <div
       id="terminal"
       class="w-full max-w-2xl rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:border-terminal-border-hover"
-      style="background: #1a1a1a; border: 1px solid #1a1a1a;"
+      style="background: #3b4252; border: 1px solid #4c566a;"
     >
       <!-- Terminal Header -->
-      <div class="flex items-center gap-2 px-4 py-3" style="background: #0a0a0a;">
+      <div class="flex items-center gap-2 px-4 py-3" style="background: #2e3440;">
         <div class="w-3 h-3 rounded-full bg-terminal-dot"></div>
         <div class="w-3 h-3 rounded-full bg-terminal-dot"></div>
         <div class="w-3 h-3 rounded-full bg-terminal-dot"></div>
@@ -62,7 +78,7 @@ import Layout from '../layouts/Layout.astro';
     <div class="mt-10 flex items-center justify-center gap-4">
       <a
         href="#installation"
-        class="px-6 py-3 rounded-lg bg-white text-black font-mono text-sm font-medium transition-colors hover:bg-neutral-200"
+        class="px-6 py-3 rounded-lg bg-[#88c0d0] text-[#2e3440] font-mono text-sm font-medium transition-colors hover:bg-[#81a1c1]"
       >
         Get Started
       </a>
@@ -78,38 +94,42 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <!-- Animated Demo Section -->
-  <section class="py-16 px-6">
+  <section aria-labelledby="demo-heading" class="py-16 px-6">
     <div class="max-w-2xl mx-auto">
-      <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase text-center mb-10">See It In Action</p>
-      <div class="relative rounded-xl overflow-hidden border border-terminal-border" style="background: #111;">
+      <h2 id="demo-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase text-center mb-10">See It In Action</h2>
+      <div id="demo-desktop" class="relative rounded-xl overflow-hidden border border-terminal-border" style="background: #3b4252;">
         <!-- macOS top bar -->
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-terminal-border" style="background: #0a0a0a;">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-terminal-border" style="background: #2e3440;">
           <div class="w-2.5 h-2.5 rounded-full bg-terminal-dot"></div>
           <div class="w-2.5 h-2.5 rounded-full bg-terminal-dot"></div>
           <div class="w-2.5 h-2.5 rounded-full bg-terminal-dot"></div>
           <div class="flex-1 text-center">
-            <span class="text-[10px] text-terminal-text-muted font-mono">Finder</span>
+            <span id="demo-position-label" class="text-[10px] text-terminal-text-muted font-mono transition-opacity duration-300">bottomRight</span>
           </div>
         </div>
         <!-- Desktop area -->
-        <div class="relative" style="height: 220px; background: #0a0a0a;">
-          <!-- Fake desktop content -->
-          <div class="absolute top-4 left-4 w-12 h-12 rounded-lg bg-terminal-surface border border-terminal-border"></div>
-          <div class="absolute top-4 left-20 w-12 h-12 rounded-lg bg-terminal-surface border border-terminal-border"></div>
+        <div class="relative" style="height: 260px; background: #2e3440;">
+          <!-- Corner position labels -->
+          <span class="absolute top-2 left-2 text-[9px] text-terminal-text-muted font-mono">topLeft</span>
+          <span class="absolute top-2 right-2 text-[9px] text-terminal-text-muted font-mono">topRight</span>
+          <span class="absolute bottom-10 left-2 text-[9px] text-terminal-text-muted font-mono">bottomLeft</span>
+          <span class="absolute bottom-10 right-2 text-[9px] text-terminal-text-muted font-mono">bottomRight</span>
+
           <!-- Notification panel (animated) -->
-          <div id="demo-notification" class="absolute bottom-4 right-4 rounded-lg border border-terminal-border p-3 flex items-center gap-3 opacity-0 translate-y-2" style="background: #1a1a1a; width: 200px; transition: opacity 0.4s ease, transform 0.4s ease;">
-            <div class="w-8 h-8 rounded bg-terminal-surface flex items-center justify-center flex-shrink-0">
-              <svg class="w-4 h-4 text-terminal-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div id="demo-notification" class="absolute rounded-lg border border-terminal-border p-3 flex items-center gap-3 opacity-0" style="background: #434c5e; width: 180px; transition: opacity 0.35s ease, transform 0.35s ease; bottom: 16px; right: 16px; top: auto; left: auto;">
+            <div class="w-7 h-7 rounded bg-[#5e81ac] flex items-center justify-center flex-shrink-0">
+              <svg class="w-3.5 h-3.5 text-[#eceff4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
               </svg>
             </div>
             <div class="min-w-0">
-              <p class="text-xs text-terminal-text font-mono truncate">Build complete</p>
-              <p class="text-[10px] text-terminal-text-muted font-mono truncate">bottomRight</p>
+              <p class="text-[11px] text-terminal-text font-mono truncate">Build complete</p>
+              <p id="demo-corner-label" class="text-[9px] text-[#88c0d0] font-mono truncate">bottomRight</p>
             </div>
           </div>
+
           <!-- Dock -->
-          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-1.5 pb-2 px-3 py-1 rounded-lg" style="background: rgba(255,255,255,0.05);">
+          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-1.5 pb-2 px-3 py-1 rounded-lg" style="background: rgba(255,255,255,0.08);">
             <div class="w-4 h-4 rounded bg-terminal-surface border border-terminal-border"></div>
             <div class="w-4 h-4 rounded bg-terminal-surface border border-terminal-border"></div>
             <div class="w-4 h-4 rounded bg-terminal-surface border border-terminal-border"></div>
@@ -119,21 +139,9 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- Screenshot Section -->
-  <section class="py-16 px-6">
-    <div class="max-w-4xl mx-auto">
-      <img
-        src="/floatify-screenshot.png"
-        alt="Floatify showing a notification in the bottom-right corner of a macOS desktop"
-        class="w-full rounded-xl border border-terminal-border"
-        loading="lazy"
-      />
-    </div>
-  </section>
-
   <!-- Features Section -->
-  <section class="py-20 px-6 max-w-6xl mx-auto">
-    <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase text-center mb-12">Features</p>
+  <section aria-labelledby="features-heading" class="py-20 px-6 max-w-6xl mx-auto">
+    <h2 id="features-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase text-center mb-12">Features</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <!-- Feature 1: Sub-millisecond IPC -->
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-6 hover:-translate-y-1 hover:border-terminal-border-hover transition-all duration-200">
@@ -196,13 +204,13 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <!-- Configuration Section -->
-  <section id="configuration" class="py-20 px-6 max-w-4xl mx-auto">
-    <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Configuration</p>
+  <section id="configuration" aria-labelledby="config-heading" class="py-20 px-6 max-w-4xl mx-auto">
+    <h2 id="config-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Configuration</h2>
     <p class="text-terminal-text-secondary mb-6">Floatify uses <code class="px-2 py-1 bg-terminal-card rounded text-sm">positions.json</code> for per-position notification settings. Place your custom config at <code class="px-2 py-1 bg-terminal-card rounded text-sm">~/.floatify/positions.json</code>.</p>
     <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
-      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
+      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
         <span class="text-xs text-terminal-text-muted font-mono">positions.json</span>
-        <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
+        <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
       </div>
       <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>{`{
   "bottomRight": {
@@ -240,8 +248,8 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <!-- How It Works Section -->
-  <section class="py-20 px-6 max-w-6xl mx-auto">
-    <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase text-center mb-12">How It Works</p>
+  <section aria-labelledby="how-it-works-heading" class="py-20 px-6 max-w-6xl mx-auto">
+    <h2 id="how-it-works-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase text-center mb-12">How It Works</h2>
     <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-8 md:gap-4">
       <!-- Step 1 -->
       <div class="flex-1 flex flex-col items-center text-center relative">
@@ -269,39 +277,39 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <!-- CLI Reference -->
-  <section id="cli-reference" class="py-20 px-6 max-w-4xl mx-auto">
-    <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">CLI Reference</p>
+  <section id="cli-reference" aria-labelledby="cli-heading" class="py-20 px-6 max-w-4xl mx-auto">
+    <h2 id="cli-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">CLI Reference</h2>
     <div class="space-y-6">
       <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
-        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
           <div class="flex gap-1.5">
             <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
             <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
             <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
           </div>
-          <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
+          <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
         <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Task complete!"</code></pre>
       </div>
       <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
-        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
           <div class="flex gap-1.5">
             <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
             <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
             <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
           </div>
-          <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
+          <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
         <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Deploy done!" --position bottomRight</code></pre>
       </div>
       <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
-        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
           <div class="flex gap-1.5">
             <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
             <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
             <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
           </div>
-          <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
+          <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
         <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Build failed" --position bottomLeft --duration 10</code></pre>
       </div>
@@ -309,12 +317,12 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <!-- Claude Code Integration -->
-  <section id="claude-code-integration" class="py-20 px-6 max-w-4xl mx-auto">
-    <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Claude Code Integration</p>
+  <section id="claude-code-integration" aria-labelledby="claude-integration-heading" class="py-20 px-6 max-w-4xl mx-auto">
+    <h2 id="claude-integration-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Claude Code Integration</h2>
     <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
-      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #0a0a0a;">
+      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
         <span class="text-xs text-terminal-text-muted font-mono">settings.json</span>
-        <button onclick="copyCode(this)" class="text-xs text-terminal-text-muted hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
+        <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
       </div>
       <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>{`{
   "hooks": {
@@ -336,11 +344,119 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
+  <!-- FAQ Section -->
+  <section aria-labelledby="faq-heading" class="py-20 px-6 max-w-4xl mx-auto border-t border-terminal-border">
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Floatify?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Floatify is a macOS menu bar app that displays floating notifications in screen dead zones (corners and edges). It uses sub-millisecond FIFO pipe IPC to receive commands from the floatify CLI, making it ideal for developer workflows and Claude Code hook integrations."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Floatify steal focus from other apps?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Floatify uses macOS non-activating panels (NSPanel with .nonactivatingPanel style) so notifications never steal keyboard or mouse focus from your current work."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What positions are supported?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Floatify supports 8 positions: bottomLeft, bottomRight, topLeft, topRight, center, menubar, horizontal, and cursorFollow. Each position has default animations optimized for that location."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does IPC work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Floatify uses a named FIFO pipe at /var/tmp/floatify.pipe for communication. The floatify CLI sends JSON commands through this pipe, achieving sub-millisecond latency without requiring network permissions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I integrate with Claude Code?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Add hook configurations to your Claude Code settings.json. Use PostToolUse hooks to notify after bash commands, or Stop hooks for session completion. The floatify CLI handles the rest."
+          }
+        }
+      ]
+    })} />
+    <h2 id="faq-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8 text-center">FAQ</h2>
+    <div class="space-y-6">
+      <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <summary class="flex items-center justify-between cursor-pointer list-none text-terminal-text font-medium">
+          <span>What is Floatify?</span>
+          <svg class="w-5 h-5 text-terminal-text-muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <p class="mt-3 text-sm text-terminal-text-secondary">
+          Floatify is a macOS menu bar app that displays floating notifications in screen dead zones (corners and edges). It uses sub-millisecond FIFO pipe IPC to receive commands from the floatify CLI, making it ideal for developer workflows and Claude Code hook integrations.
+        </p>
+      </details>
+      <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <summary class="flex items-center justify-between cursor-pointer list-none text-terminal-text font-medium">
+          <span>Does Floatify steal focus from other apps?</span>
+          <svg class="w-5 h-5 text-terminal-text-muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <p class="mt-3 text-sm text-terminal-text-secondary">
+          No. Floatify uses macOS non-activating panels (NSPanel with .nonactivatingPanel style) so notifications never steal keyboard or mouse focus from your current work.
+        </p>
+      </details>
+      <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <summary class="flex items-center justify-between cursor-pointer list-none text-terminal-text font-medium">
+          <span>What positions are supported?</span>
+          <svg class="w-5 h-5 text-terminal-text-muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <p class="mt-3 text-sm text-terminal-text-secondary">
+          Floatify supports 8 positions: bottomLeft, bottomRight, topLeft, topRight, center, menubar, horizontal, and cursorFollow. Each position has default animations optimized for that location.
+        </p>
+      </details>
+      <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <summary class="flex items-center justify-between cursor-pointer list-none text-terminal-text font-medium">
+          <span>How does IPC work?</span>
+          <svg class="w-5 h-5 text-terminal-text-muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <p class="mt-3 text-sm text-terminal-text-secondary">
+          Floatify uses a named FIFO pipe at /var/tmp/floatify.pipe for communication. The floatify CLI sends JSON commands through this pipe, achieving sub-millisecond latency without requiring network permissions.
+        </p>
+      </details>
+      <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <summary class="flex items-center justify-between cursor-pointer list-none text-terminal-text font-medium">
+          <span>How do I integrate with Claude Code?</span>
+          <svg class="w-5 h-5 text-terminal-text-muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <p class="mt-3 text-sm text-terminal-text-secondary">
+          Add hook configurations to your Claude Code settings.json. Use PostToolUse hooks to notify after bash commands, or Stop hooks for session completion. The floatify CLI handles the rest.
+        </p>
+      </details>
+    </div>
+  </section>
+
   <!-- Installation Section -->
-  <section id="installation" class="py-20 px-6 max-w-4xl mx-auto border-t border-terminal-border">
-    <p class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Installation</p>
+  <section id="installation" aria-labelledby="installation-heading" class="py-20 px-6 max-w-4xl mx-auto border-t border-terminal-border">
+    <h2 id="installation-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Installation</h2>
     <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
-      <div class="flex items-center gap-2 px-4 py-3 border-b border-terminal-border" style="background: #0a0a0a;">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-terminal-border" style="background: #2e3440;">
         <div class="w-3 h-3 rounded-full bg-terminal-dot"></div>
         <div class="w-3 h-3 rounded-full bg-terminal-dot"></div>
         <div class="w-3 h-3 rounded-full bg-terminal-dot"></div>
@@ -357,7 +473,7 @@ import Layout from '../layouts/Layout.astro';
           </span>
           <div class="flex-1 min-w-0">
             <p class="text-terminal-text font-mono mb-2">Clone the repository</p>
-            <div class="p-3 bg-[#0a0a0a] border border-terminal-border rounded font-mono text-sm">
+            <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm">
               <span class="text-terminal-text-muted">$</span> <span class="text-terminal-text-secondary">git clone https://github.com/hieppp/floatify.git</span>
             </div>
           </div>
@@ -372,7 +488,7 @@ import Layout from '../layouts/Layout.astro';
           </span>
           <div class="flex-1 min-w-0">
             <p class="text-terminal-text font-mono mb-2">Generate Xcode project</p>
-            <div class="p-3 bg-[#0a0a0a] border border-terminal-border rounded font-mono text-sm">
+            <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm">
               <span class="text-terminal-text-muted">$</span> <span class="text-terminal-text-secondary">cd Floatify && xcodegen generate</span>
             </div>
           </div>
@@ -387,7 +503,7 @@ import Layout from '../layouts/Layout.astro';
           </span>
           <div class="flex-1 min-w-0">
             <p class="text-terminal-text font-mono mb-2">Build the app</p>
-            <div class="p-3 bg-[#0a0a0a] border border-terminal-border rounded font-mono text-sm overflow-x-auto">
+            <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm overflow-x-auto">
               <span class="text-terminal-text-muted">$</span> <span class="text-terminal-text-secondary">xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO</span>
             </div>
           </div>
@@ -402,7 +518,7 @@ import Layout from '../layouts/Layout.astro';
           </span>
           <div class="flex-1 min-w-0">
             <p class="text-terminal-text font-mono mb-2">Build the CLI</p>
-            <div class="p-3 bg-[#0a0a0a] border border-terminal-border rounded font-mono text-sm overflow-x-auto">
+            <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm overflow-x-auto">
               <span class="text-terminal-text-muted">$</span> <span class="text-terminal-text-secondary">xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO</span>
             </div>
           </div>
@@ -417,7 +533,7 @@ import Layout from '../layouts/Layout.astro';
           </span>
           <div class="flex-1 min-w-0">
             <p class="text-terminal-text font-mono mb-2">Install symlinks</p>
-            <div class="p-3 bg-[#0a0a0a] border border-terminal-border rounded font-mono text-sm">
+            <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm">
               <p class="text-terminal-text-muted">The app creates symlinks automatically on first launch.</p>
               <p class="text-terminal-text-muted mt-2">Run <span class="text-terminal-text-secondary">open /Applications/Floatify.app</span> to start.</p>
             </div>
@@ -436,12 +552,14 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
+  </main>
+
   <!-- Footer -->
   <footer class="py-8 px-6 border-t border-terminal-border bg-terminal-card">
     <div class="max-w-6xl mx-auto">
       <div class="flex flex-col md:flex-row items-center justify-between gap-4">
         <!-- Left: Copyright -->
-        <p class="text-terminal-text-faint text-sm font-mono">2026 Floatify</p>
+        <p class="text-terminal-text-tertiary text-sm font-mono">2026 Floatify</p>
 
         <!-- Center: MIT License -->
         <span class="px-3 py-1 bg-terminal-surface rounded text-xs font-mono text-terminal-text-tertiary border border-terminal-border">
@@ -449,7 +567,7 @@ import Layout from '../layouts/Layout.astro';
         </span>
 
         <!-- Right: GitHub Link -->
-        <a href="https://github.com/hieppp/floatify" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-terminal-text-faint hover:text-terminal-text-muted text-sm font-mono transition-colors">
+        <a href="https://github.com/hieppp/floatify" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-terminal-text-tertiary hover:text-terminal-text text-sm font-mono transition-colors">
           GitHub
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
@@ -459,7 +577,7 @@ import Layout from '../layouts/Layout.astro';
 
       <!-- Back to top -->
       <div class="mt-6 text-center">
-        <a href="#" class="text-terminal-text-faint hover:text-terminal-text-muted text-xs font-mono transition-colors">
+        <a href="#" class="text-terminal-text-tertiary hover:text-terminal-text text-xs font-mono transition-colors">
           Back to top
         </a>
       </div>
@@ -527,9 +645,9 @@ import Layout from '../layouts/Layout.astro';
     window.addEventListener("scroll", () => {
       const scrollY = window.scrollY;
       if (scrollY > 50) {
-        navbar.style.background = "rgba(10, 10, 10, 0.95)";
+        navbar.style.background = "rgba(46, 52, 64, 0.95)";
         navbar.style.backdropFilter = "blur(10px)";
-        navbar.style.borderBottom = "1px solid #1a1a1a";
+        navbar.style.borderBottom = "1px solid #4c566a";
       } else {
         navbar.style.background = "transparent";
         navbar.style.backdropFilter = "none";
@@ -539,30 +657,52 @@ import Layout from '../layouts/Layout.astro';
 
     // Demo notification animation
     const demoNotification = document.getElementById("demo-notification");
+    const demoPositionLabel = document.getElementById("demo-position-label");
+    const demoCornerLabel = document.getElementById("demo-corner-label");
     if (demoNotification) {
+      const corners = [
+        { name: "bottomLeft", bottom: "16px", right: "", top: "", left: "16px", baseTransform: "", slideFrom: "translateY(8px)" },
+        { name: "bottomRight", bottom: "16px", right: "16px", top: "", left: "", baseTransform: "", slideFrom: "translateY(8px)" },
+        { name: "topLeft", bottom: "", right: "", top: "16px", left: "16px", baseTransform: "", slideFrom: "translateY(-8px)" },
+        { name: "topRight", bottom: "", right: "16px", top: "16px", left: "", baseTransform: "", slideFrom: "translateY(-8px)" },
+        { name: "center", bottom: "", right: "", top: "", left: "50%", baseTransform: "translate(-50%, -50%)", slideFrom: "scale(0.9)" },
+        { name: "menubar", bottom: "", right: "", top: "0px", left: "50%", baseTransform: "translateX(-50%)", slideFrom: "translateY(-100%)" },
+        { name: "horizontal", bottom: "", right: "", top: "50%", left: "50%", baseTransform: "translate(-50%, -50%)", slideFrom: "translateX(100%)" },
+        { name: "cursorFollow", bottom: "", right: "", top: "", left: "", baseTransform: "", slideFrom: "scale(0.8)" },
+      ];
+      let cornerIndex = 0;
+
+      function showNotification() {
+        const corner = corners[cornerIndex];
+        // Clear all position props first
+        ["top","bottom","left","right"].forEach(p => demoNotification.style.removeProperty(p));
+        // Set new position
+        if (corner.bottom) demoNotification.style.bottom = corner.bottom;
+        if (corner.right) demoNotification.style.right = corner.right;
+        if (corner.top) demoNotification.style.top = corner.top;
+        if (corner.left) demoNotification.style.left = corner.left;
+        // Animate in
+        demoNotification.style.opacity = "1";
+        demoNotification.style.transform = corner.baseTransform;
+        if (demoPositionLabel) demoPositionLabel.textContent = corner.name;
+        if (demoCornerLabel) demoCornerLabel.textContent = corner.name;
+        // Animate out
+        setTimeout(() => {
+          demoNotification.style.opacity = "0";
+          demoNotification.style.transform = corner.baseTransform + " " + corner.slideFrom;
+        }, 2200);
+        cornerIndex = (cornerIndex + 1) % corners.length;
+      }
+
       let demoObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            function showNotification() {
-              demoNotification.style.opacity = "1";
-              demoNotification.style.transform = "translateY(0)";
-              setTimeout(() => {
-                demoNotification.style.opacity = "0";
-                demoNotification.style.transform = "translateY(8px)";
-              }, 2500);
-            }
             showNotification();
-            const interval = setInterval(() => {
-              if (!demoNotification) {
-                clearInterval(interval);
-                return;
-              }
-              showNotification();
-            }, 5500);
+            const interval = setInterval(() => showNotification(), 3500);
             demoObserver.unobserve(entry.target);
           }
         });
-      }, { threshold: 0.5 });
+      }, { threshold: 0.3 });
       demoObserver.observe(demoNotification.closest("section"));
     }
   </script>
