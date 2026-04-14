@@ -536,6 +536,17 @@ struct FloatNotificationView: View {
         statusIndicatorColor == .red
     }
 
+    private var panelWidth: CGFloat? {
+        if isDraggablePanel {
+            switch floaterSize {
+            case .compact: return 200
+            case .regular: return 260
+            case .large: return 320
+            }
+        }
+        return isCompact ? 240 : 280
+    }
+
     var body: some View {
         ZStack {
             if corner == .cursorFollow {
@@ -616,8 +627,8 @@ struct FloatNotificationView: View {
             .padding(.horizontal, floaterSize.horizontalPadding)
             .padding(.vertical, floaterSize.verticalPadding)
         }
-        .fixedSize(horizontal: isDraggablePanel, vertical: false)
-        .frame(width: isDraggablePanel ? nil : (isCompact ? 240 : 280))
+        .fixedSize(horizontal: isDraggablePanel ? false : true, vertical: false)
+        .frame(width: panelWidth)
         .frame(minHeight: showsStatusAsColorOnly ? (isCompact ? 56 : 72) : (isCompact ? 56 : 68))
         .clipShape(RoundedRectangle(cornerRadius: panelCornerRadius))
         .shadow(color: .black.opacity(isPanelHovering && isDraggablePanel ? 0.30 : 0.25), radius: isPanelHovering && isDraggablePanel ? 24 : 20, x: 0, y: isPanelHovering && isDraggablePanel ? 16 : 12)
