@@ -160,8 +160,9 @@ class FloatNotificationManager {
     }
 
     private func makePersistentStatusPanel(item: PersistentStatusItem, index: Int) -> FloatPanel {
-        let config = PositionConfigManager.shared.config(for: .bottomRight)
-        let size = CGSize(width: config.width, height: config.height)
+        let dismissController = DismissController()
+        let hostingView = makeStatusHostingView(item: item, dismissController: dismissController, playsEntryAnimation: true)
+        let size = fittingPanelSize(for: hostingView)
         let panel = FloatPanel(
             contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
@@ -179,16 +180,32 @@ class FloatNotificationManager {
         panel.ignoresMouseEvents = false
         panel.isMovableByWindowBackground = true
         panel.hidesOnDeactivate = false
+        panel.dismissController = dismissController
+        panel.contentView = hostingView
         panel.setFrameOrigin(restoredStatusPanelOrigin(for: size, id: item.id, index: index))
-
-        updateStatusPanel(panel, item: item, playsEntryAnimation: true)
         return panel
     }
 
     private func updateStatusPanel(_ panel: FloatPanel, item: PersistentStatusItem, playsEntryAnimation: Bool) {
         let dismissController = DismissController()
+        let hostingView = makeStatusHostingView(
+            item: item,
+            dismissController: dismissController,
+            playsEntryAnimation: playsEntryAnimation
+        )
+        let size = fittingPanelSize(for: hostingView)
+
         panel.dismissController = dismissController
-        panel.contentView = NSHostingView(
+        panel.contentView = hostingView
+        panel.setContentSize(size)
+    }
+
+    private func makeStatusHostingView(
+        item: PersistentStatusItem,
+        dismissController: DismissController,
+        playsEntryAnimation: Bool
+    ) -> NSHostingView<FloatNotificationView> {
+        NSHostingView(
             rootView: FloatNotificationView(
                 message: item.state.message,
                 project: item.project,
@@ -199,6 +216,12 @@ class FloatNotificationManager {
                 dismissController: dismissController
             )
         )
+    }
+
+    private func fittingPanelSize(for hostingView: NSView) -> CGSize {
+        hostingView.layoutSubtreeIfNeeded()
+        let size = hostingView.fittingSize
+        return CGSize(width: ceil(size.width), height: ceil(size.height))
     }
 
     private func installStatusMoveObserver(for panel: FloatPanel, id: String) {

@@ -107,12 +107,16 @@ struct FloatNotificationView: View {
                         .lineLimit(2)
                 }
 
-                Spacer()
+                if !isDraggablePanel {
+                    Spacer(minLength: 0)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
         }
-        .frame(width: 280, height: 68)
+        .fixedSize(horizontal: isDraggablePanel, vertical: false)
+        .frame(width: isDraggablePanel ? nil : 280)
+        .frame(minHeight: 68)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.18), radius: 10, x: 0, y: 4)
         .scaleEffect(panelScale)
