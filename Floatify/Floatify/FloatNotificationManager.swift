@@ -50,7 +50,7 @@ struct FloaterPanelItem: Identifiable {
     let dismissController: DismissController
     let playsEntryAnimation: Bool
     let effect: String
-    let spriteCharacter: StatusSpriteCharacter
+    let sheetName: String?
     let floaterSize: FloaterSize
 
     var id: String { item.id }
@@ -58,7 +58,7 @@ struct FloaterPanelItem: Identifiable {
 
 private struct PersistentStatusStyle {
     let effect: String
-    let spriteCharacter: StatusSpriteCharacter
+    let sheetName: String?
 }
 
 class FloatNotificationManager {
@@ -83,7 +83,16 @@ class FloatNotificationManager {
     private let floaterPanelSpringDamping: CGFloat = 0.82
     private let floaterPanelSpringVelocity: CGFloat = 0.45
     private let statusEffects = ["slide", "fade", "dropdown", "marquee", "trail"]
-    private let statusSpriteCharacters: [StatusSpriteCharacter] = [.squirtle, .wartortle, .blastoise]
+    private var availableSpriteSheets: [String] = {
+        guard let bundleURL = Bundle.main.resourceURL,
+              let contents = try? FileManager.default.contentsOfDirectory(at: bundleURL, includingPropertiesForKeys: nil) else {
+            return []
+        }
+        return contents
+            .filter { $0.pathExtension.lowercased() == "png" }
+            .map { $0.deletingPathExtension().lastPathComponent }
+            .sorted()
+    }()
     private var isFloaterPanelCollapsed: Bool
     private var defaultsObserver: NSObjectProtocol?
     private var lastFloaterSizeRaw: String
@@ -224,7 +233,7 @@ class FloatNotificationManager {
                 dismissController: floaterDismissController(for: item.id),
                 playsEntryAnimation: animatedItemIDs.contains(item.id),
                 effect: style.effect,
-                spriteCharacter: style.spriteCharacter,
+                sheetName: style.sheetName,
                 floaterSize: floaterSize
             )
         }
@@ -329,12 +338,19 @@ class FloatNotificationManager {
         refreshFloaterPanel(animated: true)
     }
 
+    private var sheetAssignments: [String: String] = [:]
+
     private func statusStyle(for id: String) -> PersistentStatusStyle {
         let seed = stableSeed(for: id)
-        return PersistentStatusStyle(
-            effect: statusEffects[seed % statusEffects.count],
-            spriteCharacter: statusSpriteCharacters[seed % statusSpriteCharacters.count]
-        )
+        let effect = statusEffects[seed % statusEffects.count]
+
+        if let assignedSheet = sheetAssignments[id] {
+            return PersistentStatusStyle(effect: effect, sheetName: assignedSheet)
+        }
+
+        let sheetName = availableSpriteSheets.randomElement()
+        sheetAssignments[id] = sheetName
+        return PersistentStatusStyle(effect: effect, sheetName: sheetName)
     }
 
     private func stableSeed(for text: String) -> Int {

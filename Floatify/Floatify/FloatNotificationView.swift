@@ -70,24 +70,55 @@ enum FloaterSize {
     }
 }
 
-private enum SpriteSheetCache {
-    static let sheetName = "image"
-    static var sheetCGImage: CGImage? = {
-        guard let url = Bundle.main.url(forResource: sheetName, withExtension: "png"),
-              let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
-            return nil
+// MARK: - Animate Source Manager
+
+private enum AnimateSourceManager {
+    static var availableSheets: [String] = {
+        guard let bundleURL = Bundle.main.resourceURL,
+              let contents = try? FileManager.default.contentsOfDirectory(at: bundleURL, includingPropertiesForKeys: nil) else {
+            return []
         }
-        return CGImageSourceCreateImageAtIndex(source, 0, nil)
+        return contents
+            .filter { $0.pathExtension.lowercased() == "png" }
+            .map { $0.deletingPathExtension().lastPathComponent }
+            .sorted()
     }()
+
+    static func randomSheetName() -> String? {
+        guard !availableSheets.isEmpty else { return nil }
+        return availableSheets.randomElement()
+    }
+}
+
+// MARK: - Sprite Sheet Cache
+
+private enum SpriteSheetCache {
+    static var sheetCache: [String: CGImage] = [:]
     static var frames: [String: NSImage] = [:]
 
-    static func image(for rect: CGRect) -> NSImage? {
-        let key = "\(Int(rect.origin.x)):\(Int(rect.origin.y)):\(Int(rect.size.width)):\(Int(rect.size.height))"
+    static func cgImage(for sheetName: String) -> CGImage? {
+        if let cached = sheetCache[sheetName] {
+            return cached
+        }
+
+        guard let url = Bundle.main.url(forResource: sheetName, withExtension: "png"),
+              let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+            return nil
+        }
+
+        sheetCache[sheetName] = image
+        return image
+    }
+
+    static func image(for rect: CGRect, sheetName: String) -> NSImage? {
+        let key = "\(sheetName):\(Int(rect.origin.x)):\(Int(rect.origin.y)):\(Int(rect.size.width)):\(Int(rect.size.height))"
         if let cached = frames[key] {
             return cached
         }
 
-        guard let cropped = sheetCGImage?.cropping(to: rect) else {
+        guard let sheet = cgImage(for: sheetName),
+              let cropped = sheet.cropping(to: rect) else {
             return nil
         }
 
@@ -98,48 +129,31 @@ private enum SpriteSheetCache {
 }
 
 private struct SpriteAnimationView: View {
-    let character: StatusSpriteCharacter
+    let sheetName: String?
     let isAnimating: Bool
     var size: CGFloat = 44
 
     @State private var frameIndex = 0
     private let timer = Timer.publish(every: 0.16, on: .main, in: .common).autoconnect()
 
+    private var effectiveSheetName: String {
+        sheetName ?? "image"
+    }
+
     private var frameRects: [CGRect] {
-        switch character {
-        case .squirtle:
-            return [
-                CGRect(x: 6, y: 203, width: 44, height: 44),
-                CGRect(x: 45, y: 203, width: 44, height: 44),
-                CGRect(x: 85, y: 203, width: 46, height: 44),
-                CGRect(x: 128, y: 205, width: 42, height: 44),
-                CGRect(x: 168, y: 206, width: 42, height: 42),
-                CGRect(x: 207, y: 207, width: 44, height: 42)
-            ]
-        case .wartortle:
-            return [
-                CGRect(x: 302, y: 206, width: 47, height: 40),
-                CGRect(x: 350, y: 208, width: 47, height: 40),
-                CGRect(x: 430, y: 210, width: 44, height: 44),
-                CGRect(x: 478, y: 208, width: 45, height: 46),
-                CGRect(x: 520, y: 210, width: 46, height: 44),
-                CGRect(x: 564, y: 210, width: 46, height: 42)
-            ]
-        case .blastoise:
-            return [
-                CGRect(x: 13, y: 149, width: 44, height: 44),
-                CGRect(x: 54, y: 146, width: 46, height: 46),
-                CGRect(x: 98, y: 154, width: 46, height: 38),
-                CGRect(x: 141, y: 156, width: 45, height: 38),
-                CGRect(x: 184, y: 151, width: 47, height: 42),
-                CGRect(x: 225, y: 152, width: 46, height: 41)
-            ]
-        }
+        return [
+            CGRect(x: 6, y: 203, width: 44, height: 44),
+            CGRect(x: 45, y: 203, width: 44, height: 44),
+            CGRect(x: 85, y: 203, width: 46, height: 44),
+            CGRect(x: 128, y: 205, width: 42, height: 44),
+            CGRect(x: 168, y: 206, width: 42, height: 42),
+            CGRect(x: 207, y: 207, width: 44, height: 42)
+        ]
     }
 
     var body: some View {
         Group {
-            if let image = SpriteSheetCache.image(for: frameRects[frameIndex]) {
+            if let image = SpriteSheetCache.image(for: frameRects[frameIndex], sheetName: effectiveSheetName) {
                 Image(nsImage: image)
                     .interpolation(.none)
                     .resizable()
@@ -425,7 +439,7 @@ private struct AvatarBreathingView: View {
 }
 
 private struct EnhancedAvatarStageView: View {
-    let spriteCharacter: StatusSpriteCharacter?
+    let sheetName: String?
     let statusColor: Color
     let isRunning: Bool
     let isAnimating: Bool
@@ -496,9 +510,9 @@ private struct EnhancedAvatarStageView: View {
                     .blur(radius: 6)
 
                 // The sprite with breathing effect
-                if let spriteCharacter {
+                if let sheetName {
                     SpriteAnimationView(
-                        character: spriteCharacter,
+                        sheetName: sheetName,
                         isAnimating: isAnimating,
                         size: size - 16
                     )
@@ -805,7 +819,7 @@ struct FloaterPanelView: View {
                                 onItemClose(item.item)
                             },
                             statusIndicatorColor: item.item.state.indicatorColor,
-                            spriteCharacter: item.spriteCharacter,
+                            sheetName: item.sheetName,
                             animatesStatus: item.item.state == .running,
                             isDraggablePanel: true,
                             playsEntryAnimation: item.playsEntryAnimation,
@@ -844,7 +858,7 @@ struct FloatNotificationView: View {
     var onTap: (() -> Void)?
     var onClose: (() -> Void)?
     var statusIndicatorColor: Color?
-    var spriteCharacter: StatusSpriteCharacter?
+    var sheetName: String?
     var animatesStatus = true
     var isDraggablePanel = false
     var playsEntryAnimation = true
@@ -870,7 +884,7 @@ struct FloatNotificationView: View {
         onTap: (() -> Void)? = nil,
         onClose: (() -> Void)? = nil,
         statusIndicatorColor: Color? = nil,
-        spriteCharacter: StatusSpriteCharacter? = nil,
+        sheetName: String? = nil,
         animatesStatus: Bool = true,
         isDraggablePanel: Bool = false,
         playsEntryAnimation: Bool = true,
@@ -886,7 +900,7 @@ struct FloatNotificationView: View {
         self.onTap = onTap
         self.onClose = onClose
         self.statusIndicatorColor = statusIndicatorColor
-        self.spriteCharacter = spriteCharacter
+        self.sheetName = sheetName
         self.animatesStatus = animatesStatus
         self.isDraggablePanel = isDraggablePanel
         self.playsEntryAnimation = playsEntryAnimation
@@ -1151,9 +1165,9 @@ struct FloatNotificationView: View {
     @ViewBuilder
     private var duckIcon: some View {
         let icon = Group {
-            if let spriteCharacter {
+            if let sheetName {
                 SpriteAnimationView(
-                    character: spriteCharacter,
+                    sheetName: sheetName,
                     isAnimating: showIdleAnimations && shouldAnimateStatus,
                     size: floaterSize.spriteSize
                 )
@@ -1201,7 +1215,7 @@ struct FloatNotificationView: View {
 
     private var persistentSpriteStage: some View {
         EnhancedAvatarStageView(
-            spriteCharacter: spriteCharacter,
+            sheetName: sheetName,
             statusColor: statusAccentColor,
             isRunning: isRunning,
             isAnimating: showIdleAnimations && shouldAnimateStatus,

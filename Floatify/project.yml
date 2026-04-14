@@ -28,7 +28,7 @@ targets:
         buildPhase: resources
       - path: Floatify/Assets.xcassets
         buildPhase: resources
-      - path: ../image.png
+      - path: ../animate-source
         buildPhase: resources
     settings:
       base:
