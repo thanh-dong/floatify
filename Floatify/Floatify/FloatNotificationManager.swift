@@ -89,8 +89,13 @@ class FloatNotificationManager {
 
             let activeIDs = Set(sortedItems.map(\.id)).union(self.closingStatusPanelIDs)
             let staleIDs = self.statusPanels.keys.filter { !activeIDs.contains($0) }
+            let didRemovePanels = !staleIDs.isEmpty
             for id in staleIDs {
                 self.removeStatusPanel(id: id)
+            }
+
+            if didRemovePanels {
+                self.arrangePersistentStatuses()
             }
 
             for (index, item) in sortedItems.enumerated() {
@@ -354,6 +359,7 @@ class FloatNotificationManager {
 
         hiddenStatusPanelIDs.insert(id)
         closingStatusPanelIDs.insert(id)
+        arrangePersistentStatuses()
 
         if let controller = panel.dismissController {
             controller.dismiss { [weak self] in
