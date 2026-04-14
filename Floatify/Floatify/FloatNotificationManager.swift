@@ -57,6 +57,8 @@ class FloatNotificationManager {
     private var statusPanels: [String: FloatPanel] = [:]
     private var currentStatusItemsByID: [String: PersistentStatusItem] = [:]
     private var statusPanelMoveObservers: [String: NSObjectProtocol] = [:]
+    private var hiddenStatusPanelIDs: Set<String> = []
+    private var closingStatusPanelIDs: Set<String> = []
     private let maxPanels = 8
     private let maxHorizontalPanels = 5
     private let horizontalStackOffset: CGFloat = 8
@@ -76,15 +78,16 @@ class FloatNotificationManager {
 
     func showPersistentStatuses(_ items: [PersistentStatusItem]) {
         DispatchQueue.main.async {
-            self.currentStatusItemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
-            let sortedItems = items.sorted {
+            let visibleItems = items.filter { !self.hiddenStatusPanelIDs.contains($0.id) }
+            self.currentStatusItemsByID = Dictionary(uniqueKeysWithValues: visibleItems.map { ($0.id, $0) })
+            let sortedItems = visibleItems.sorted {
                 if $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedSame {
                     return $0.id < $1.id
                 }
                 return $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedAscending
             }
 
-            let activeIDs = Set(sortedItems.map(\.id))
+            let activeIDs = Set(sortedItems.map(\.id)).union(self.closingStatusPanelIDs)
             let staleIDs = self.statusPanels.keys.filter { !activeIDs.contains($0) }
             for id in staleIDs {
                 self.removeStatusPanel(id: id)
@@ -110,7 +113,9 @@ class FloatNotificationManager {
 
     func arrangePersistentStatuses() {
         DispatchQueue.main.async {
-            let sortedItems = self.currentStatusItemsByID.values.sorted {
+            let sortedItems = self.currentStatusItemsByID.values.filter {
+                !self.hiddenStatusPanelIDs.contains($0.id)
+            }.sorted {
                 if $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedSame {
                     return $0.id < $1.id
                 }
@@ -139,7 +144,7 @@ class FloatNotificationManager {
         let size = CGSize(width: config.width, height: config.height)
         NSLog("Floatify: Creating FloatPanel")
         let origin: CGPoint
-        var newPanel = FloatPanel(
+        let newPanel = FloatPanel(
             contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
             backing: .buffered,
@@ -198,7 +203,14 @@ class FloatNotificationManager {
 
     private func makePersistentStatusPanel(item: PersistentStatusItem, index: Int) -> FloatPanel {
         let dismissController = DismissController()
-        let hostingView = makeStatusHostingView(item: item, dismissController: dismissController, playsEntryAnimation: true)
+        let hostingView = makeStatusHostingView(
+            item: item,
+            dismissController: dismissController,
+            playsEntryAnimation: true,
+            onClose: { [weak self] in
+                self?.closePersistentStatusPanel(id: item.id)
+            }
+        )
         let size = persistentStatusPanelSize(for: item)
         let panel = FloatPanel(
             contentRect: NSRect(origin: .zero, size: size),
@@ -228,7 +240,10 @@ class FloatNotificationManager {
         let hostingView = makeStatusHostingView(
             item: item,
             dismissController: dismissController,
-            playsEntryAnimation: playsEntryAnimation
+            playsEntryAnimation: playsEntryAnimation,
+            onClose: { [weak self] in
+                self?.closePersistentStatusPanel(id: item.id)
+            }
         )
         let size = persistentStatusPanelSize(for: item)
 
@@ -240,7 +255,8 @@ class FloatNotificationManager {
     private func makeStatusHostingView(
         item: PersistentStatusItem,
         dismissController: DismissController,
-        playsEntryAnimation: Bool
+        playsEntryAnimation: Bool,
+        onClose: (() -> Void)? = nil
     ) -> NSHostingView<FloatNotificationView> {
         let style = statusStyle(for: item.id)
         return NSHostingView(
@@ -249,6 +265,7 @@ class FloatNotificationManager {
                 project: item.project,
                 corner: .bottomRight,
                 effect: style.effect,
+                onClose: onClose,
                 statusIndicatorColor: item.state.indicatorColor,
                 spriteCharacter: style.spriteCharacter,
                 animatesStatus: item.state == .running,
@@ -327,6 +344,30 @@ class FloatNotificationManager {
         if let panel = statusPanels[id] {
             panel.orderOut(nil)
             statusPanels.removeValue(forKey: id)
+        }
+    }
+
+    private func closePersistentStatusPanel(id: String) {
+        guard let panel = statusPanels[id], !closingStatusPanelIDs.contains(id) else {
+            return
+        }
+
+        hiddenStatusPanelIDs.insert(id)
+        closingStatusPanelIDs.insert(id)
+
+        if let controller = panel.dismissController {
+            controller.dismiss { [weak self] in
+                guard let self = self else { return }
+                panel.orderOut(nil)
+                self.removeStatusPanel(id: id)
+                self.closingStatusPanelIDs.remove(id)
+                self.arrangePersistentStatuses()
+            }
+        } else {
+            panel.orderOut(nil)
+            removeStatusPanel(id: id)
+            closingStatusPanelIDs.remove(id)
+            arrangePersistentStatuses()
         }
     }
 

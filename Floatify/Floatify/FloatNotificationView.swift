@@ -97,6 +97,7 @@ struct FloatNotificationView: View {
     var effect: String?
     var sound: String?
     var onTap: (() -> Void)?
+    var onClose: (() -> Void)?
     var statusIndicatorColor: Color?
     var spriteCharacter: StatusSpriteCharacter?
     var animatesStatus = true
@@ -118,6 +119,7 @@ struct FloatNotificationView: View {
         effect: String? = nil,
         sound: String? = nil,
         onTap: (() -> Void)? = nil,
+        onClose: (() -> Void)? = nil,
         statusIndicatorColor: Color? = nil,
         spriteCharacter: StatusSpriteCharacter? = nil,
         animatesStatus: Bool = true,
@@ -131,6 +133,7 @@ struct FloatNotificationView: View {
         self.effect = effect
         self.sound = sound
         self.onTap = onTap
+        self.onClose = onClose
         self.statusIndicatorColor = statusIndicatorColor
         self.spriteCharacter = spriteCharacter
         self.animatesStatus = animatesStatus
@@ -241,7 +244,13 @@ struct FloatNotificationView: View {
         .shadow(color: showsStatusAsColorOnly ? statusAccentColor.opacity(0.22) : .black.opacity(0.18), radius: 10, x: 0, y: 4)
         .scaleEffect(panelScale)
         .opacity(panelOpacity)
-        .allowsHitTesting(!isDraggablePanel)
+        .allowsHitTesting(true)
+        .overlay(alignment: .topTrailing) {
+            if isDraggablePanel {
+                closeButton
+                    .padding(8)
+            }
+        }
         .onAppear {
             if playsEntryAnimation {
                 triggerEntry()
@@ -276,6 +285,23 @@ struct FloatNotificationView: View {
         } else {
             icon
         }
+    }
+
+    private var closeButton: some View {
+        Button(action: {
+            onClose?()
+        }) {
+            Image(systemName: "xmark")
+                .font(.system(size: 8, weight: .bold))
+                .foregroundStyle(.secondary)
+                .frame(width: 18, height: 18)
+                .background(.ultraThinMaterial, in: Circle())
+                .overlay(
+                    Circle().strokeBorder(.white.opacity(0.16), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .contentShape(Circle())
     }
 
     private func triggerEntry() {
