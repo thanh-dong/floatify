@@ -322,6 +322,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let testItem = NSMenuItem(title: "Test Notification", action: #selector(testNotification), keyEquivalent: "")
         testItem.target = self
         menu.addItem(testItem)
+        let arrangeItem = NSMenuItem(title: "Arrange", action: #selector(arrangeFloaters), keyEquivalent: "")
+        arrangeItem.target = self
+        menu.addItem(arrangeItem)
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit Floatify", action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu
@@ -331,6 +334,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         for corner in Corner.allCases {
             FloatNotificationManager.shared.show(message: "Test: \(corner.rawValue)", corner: corner, duration: 5, project: "Test")
         }
+    }
+
+    @objc private func arrangeFloaters() {
+        FloatNotificationManager.shared.arrangePersistentStatuses()
     }
 
     @objc private func quit() {

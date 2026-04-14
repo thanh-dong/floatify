@@ -55,6 +55,7 @@ class FloatNotificationManager {
     private var panels: [FloatPanel] = []
     private var cursorFollowTimers: [FloatPanel: Timer] = [:]
     private var statusPanels: [String: FloatPanel] = [:]
+    private var currentStatusItemsByID: [String: PersistentStatusItem] = [:]
     private var statusPanelMoveObservers: [String: NSObjectProtocol] = [:]
     private let maxPanels = 8
     private let maxHorizontalPanels = 5
@@ -74,6 +75,7 @@ class FloatNotificationManager {
 
     func showPersistentStatuses(_ items: [PersistentStatusItem]) {
         DispatchQueue.main.async {
+            self.currentStatusItemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
             let sortedItems = items.sorted {
                 if $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedSame {
                     return $0.id < $1.id
@@ -100,6 +102,25 @@ class FloatNotificationManager {
                 let panel = self.makePersistentStatusPanel(item: item, index: index)
                 self.statusPanels[item.id] = panel
                 self.installStatusMoveObserver(for: panel, id: item.id)
+                panel.orderFrontRegardless()
+            }
+        }
+    }
+
+    func arrangePersistentStatuses() {
+        DispatchQueue.main.async {
+            let sortedItems = self.currentStatusItemsByID.values.sorted {
+                if $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedSame {
+                    return $0.id < $1.id
+                }
+                return $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedAscending
+            }
+
+            for (index, item) in sortedItems.enumerated() {
+                guard let panel = self.statusPanels[item.id] else { continue }
+                let origin = self.defaultStatusPanelOrigin(for: panel.frame.size, index: index)
+                panel.setFrameOrigin(origin)
+                self.saveStatusPanelOrigin(origin, id: item.id)
                 panel.orderFrontRegardless()
             }
         }
@@ -169,7 +190,7 @@ class FloatNotificationManager {
     private func makePersistentStatusPanel(item: PersistentStatusItem, index: Int) -> FloatPanel {
         let dismissController = DismissController()
         let hostingView = makeStatusHostingView(item: item, dismissController: dismissController, playsEntryAnimation: true)
-        let size = fittingPanelSize(for: hostingView)
+        let size = persistentStatusPanelSize(for: item)
         let panel = FloatPanel(
             contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
@@ -200,7 +221,7 @@ class FloatNotificationManager {
             dismissController: dismissController,
             playsEntryAnimation: playsEntryAnimation
         )
-        let size = fittingPanelSize(for: hostingView)
+        let size = persistentStatusPanelSize(for: item)
 
         panel.dismissController = dismissController
         panel.contentView = hostingView
@@ -249,6 +270,28 @@ class FloatNotificationManager {
         hostingView.layoutSubtreeIfNeeded()
         let size = hostingView.fittingSize
         return CGSize(width: ceil(size.width), height: ceil(size.height))
+    }
+
+    private func persistentStatusPanelSize(for item: PersistentStatusItem) -> CGSize {
+        let completeItem = PersistentStatusItem(id: item.id, project: item.project, state: .complete)
+        let runningItem = PersistentStatusItem(id: item.id, project: item.project, state: .running)
+        let completeView = makeStatusHostingView(
+            item: completeItem,
+            dismissController: DismissController(),
+            playsEntryAnimation: false
+        )
+        let runningView = makeStatusHostingView(
+            item: runningItem,
+            dismissController: DismissController(),
+            playsEntryAnimation: false
+        )
+        let completeSize = fittingPanelSize(for: completeView)
+        let runningSize = fittingPanelSize(for: runningView)
+
+        return CGSize(
+            width: max(completeSize.width, runningSize.width),
+            height: max(completeSize.height, runningSize.height)
+        )
     }
 
     private func installStatusMoveObserver(for panel: FloatPanel, id: String) {
