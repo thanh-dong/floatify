@@ -1061,9 +1061,8 @@ struct FloatNotificationView: View {
         .onAppear {
             if playsEntryAnimation {
                 triggerEntry()
-            } else {
-                showIdleAnimations = true
             }
+            showIdleAnimations = true
         }
         .onChange(of: dismissController.shouldDismiss) { shouldDismiss in
             if shouldDismiss {
