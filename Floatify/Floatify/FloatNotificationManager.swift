@@ -85,9 +85,20 @@ class FloatNotificationManager {
     private let statusEffects = ["slide", "fade", "dropdown", "marquee", "trail"]
     private let statusSpriteCharacters: [StatusSpriteCharacter] = [.squirtle, .wartortle, .blastoise]
     private var isFloaterPanelCollapsed: Bool
+    private var defaultsObserver: NSObjectProtocol?
+    private var lastFloaterSizeRaw: String
 
     private init() {
         isFloaterPanelCollapsed = false
+        lastFloaterSizeRaw = UserDefaults.standard.string(forKey: "FloaterSize") ?? "regular"
+
+        defaultsObserver = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.handleDefaultsChange()
+        }
     }
 
     func show(message: String, corner: Corner, duration: TimeInterval = 6, project: String?) {
@@ -199,7 +210,7 @@ class FloatNotificationManager {
         }
     }
 
-    private func refreshFloaterPanel(animatedItemIDs: Set<String> = []) {
+    private func refreshFloaterPanel(animatedItemIDs: Set<String> = [], animated: Bool = false) {
         let items = currentStatusItemsByID.values.sorted(by: Self.sortPersistentItems(_:_:))
         guard !items.isEmpty else {
             removeFloaterPanel()
@@ -214,7 +225,7 @@ class FloatNotificationManager {
                 playsEntryAnimation: animatedItemIDs.contains(item.id),
                 effect: style.effect,
                 spriteCharacter: style.spriteCharacter,
-                floaterSize: floaterSizeFromDefaults()
+                floaterSize: floaterSize
             )
         }
 
@@ -222,7 +233,7 @@ class FloatNotificationManager {
         let size = fittingPanelSize(for: hostingView)
 
         if let panel = floaterPanel {
-            resizeFloaterPanel(panel, to: size)
+            resizeFloaterPanel(panel, to: size, animated: animated)
             panel.orderFrontRegardless()
             return
         }
@@ -299,13 +310,23 @@ class FloatNotificationManager {
         return controller
     }
 
-    private func floaterSizeFromDefaults() -> FloaterSize {
-        let sizeString = UserDefaults.standard.string(forKey: "FloaterSize") ?? "regular"
-        switch sizeString {
+    private var floaterSizeRaw: String {
+        UserDefaults.standard.string(forKey: "FloaterSize") ?? "regular"
+    }
+
+    private var floaterSize: FloaterSize {
+        switch floaterSizeRaw {
         case "compact": return .compact
         case "large": return .large
         default: return .regular
         }
+    }
+
+    private func handleDefaultsChange() {
+        let newSize = floaterSizeRaw
+        guard newSize != lastFloaterSizeRaw else { return }
+        lastFloaterSizeRaw = newSize
+        refreshFloaterPanel(animated: true)
     }
 
     private func statusStyle(for id: String) -> PersistentStatusStyle {
@@ -423,19 +444,23 @@ class FloatNotificationManager {
         refreshFloaterPanel()
     }
 
-    private func resizeFloaterPanel(_ panel: FloatPanel, to size: CGSize) {
+    private func resizeFloaterPanel(_ panel: FloatPanel, to size: CGSize, animated: Bool = false) {
         let origin = clampedFloaterPanelOrigin(
             CGPoint(x: panel.frame.maxX - size.width, y: panel.frame.minY),
             size: size
         )
         let frame = NSRect(origin: origin, size: size)
 
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = floaterPanelAnimationDuration
-            context.allowsImplicitAnimation = true
-            context.timingFunction = CAMediaTimingFunction(controlPoints: 0.16, 0.0, 0.30, 1.0)
-            panel.animator().setFrame(frame, display: true)
-        } completionHandler: {
+        if animated {
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = floaterPanelAnimationDuration
+                context.allowsImplicitAnimation = true
+                context.timingFunction = CAMediaTimingFunction(controlPoints: 0.16, 0.0, 0.30, 1.0)
+                panel.animator().setFrame(frame, display: true)
+            } completionHandler: {
+                panel.setFrame(frame, display: true)
+            }
+        } else {
             panel.setFrame(frame, display: true)
         }
 

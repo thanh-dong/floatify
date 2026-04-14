@@ -154,6 +154,422 @@ private struct SpriteAnimationView: View {
     }
 }
 
+// MARK: - Cosmic Avatar Effects
+
+private struct EnergyParticle: Identifiable {
+    let id = UUID()
+    var angle: Double
+    var radius: CGFloat
+    var opacity: Double
+    var scale: CGFloat
+    var speed: Double
+    var birthTime: Date
+
+    var age: TimeInterval {
+        Date().timeIntervalSince(birthTime)
+    }
+}
+
+private struct AvatarAuraView: View {
+    let baseColor: Color
+    let isAnimating: Bool
+    let intensity: Double
+
+    @State private var auraPhase: Double = 0
+    @State private var innerGlowScale: CGFloat = 1.0
+    @State private var outerGlowScale: CGFloat = 1.0
+
+    var body: some View {
+        ZStack {
+            // Outer glow layer - slow pulse
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            baseColor.opacity(0.25 * intensity),
+                            baseColor.opacity(0.15 * intensity),
+                            baseColor.opacity(0.05 * intensity),
+                            .clear
+                        ],
+                        center: .center,
+                        startRadius: 10,
+                        endRadius: 35
+                    )
+                )
+                .frame(width: 70 * outerGlowScale, height: 70 * outerGlowScale)
+                .blur(radius: 8)
+
+            // Middle aura - medium pulse
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            baseColor.opacity(0.35 * intensity),
+                            baseColor.opacity(0.20 * intensity),
+                            .clear
+                        ],
+                        center: .center,
+                        startRadius: 5,
+                        endRadius: 25
+                    )
+                )
+                .frame(width: 50 * innerGlowScale, height: 50 * innerGlowScale)
+                .blur(radius: 5)
+
+            // Core glow - fast shimmer
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            .white.opacity(0.30 * intensity),
+                            baseColor.opacity(0.40 * intensity),
+                            .clear
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 18
+                    )
+                )
+                .frame(width: 36, height: 36)
+                .blur(radius: 3)
+                .rotationEffect(.degrees(auraPhase * 30))
+                .opacity(0.8 + 0.2 * sin(auraPhase * 2))
+        }
+        .onAppear {
+            guard isAnimating else { return }
+            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                innerGlowScale = 1.15
+            }
+            withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+                outerGlowScale = 1.2
+            }
+            withAnimation(.linear(duration: 4.0).repeatForever(autoreverses: false)) {
+                auraPhase = 1
+            }
+        }
+    }
+}
+
+private struct PulsingRingsView: View {
+    let color: Color
+    let isAnimating: Bool
+
+    @State private var ring1Progress: CGFloat = 0
+    @State private var ring2Progress: CGFloat = 0
+    @State private var ring3Progress: CGFloat = 0
+
+    var body: some View {
+        ZStack {
+            // Ring 1 - fastest
+            Circle()
+                .stroke(
+                    color.opacity(0.6 - ring1Progress * 0.5),
+                    lineWidth: 1.5 - ring1Progress
+                )
+                .frame(width: 44 + ring1Progress * 20, height: 44 + ring1Progress * 20)
+                .scaleEffect(1 + ring1Progress * 0.3)
+                .opacity(1 - ring1Progress)
+
+            // Ring 2 - medium
+            Circle()
+                .stroke(
+                    color.opacity(0.5 - ring2Progress * 0.4),
+                    lineWidth: 1.2 - ring2Progress * 0.8
+                )
+                .frame(width: 48 + ring2Progress * 24, height: 48 + ring2Progress * 24)
+                .scaleEffect(1 + ring2Progress * 0.35)
+                .opacity(0.8 - ring2Progress * 0.7)
+
+            // Ring 3 - slowest
+            Circle()
+                .stroke(
+                    color.opacity(0.4 - ring3Progress * 0.35),
+                    lineWidth: 1 - ring3Progress * 0.7
+                )
+                .frame(width: 52 + ring3Progress * 28, height: 52 + ring3Progress * 28)
+                .scaleEffect(1 + ring3Progress * 0.4)
+                .opacity(0.6 - ring3Progress * 0.5)
+        }
+        .onAppear {
+            guard isAnimating else { return }
+
+            // Staggered ring animations
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
+                withAnimation(.easeOut(duration: 1.5).repeatForever(autoreverses: false)) {
+                    ring1Progress = 1
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(.easeOut(duration: 1.8).repeatForever(autoreverses: false)) {
+                    ring2Progress = 1
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation(.easeOut(duration: 2.2).repeatForever(autoreverses: false)) {
+                    ring3Progress = 1
+                }
+            }
+        }
+    }
+}
+
+private struct OrbitingParticlesView: View {
+    let color: Color
+    let isAnimating: Bool
+    var particleCount: Int = 6
+
+    @State private var rotation: Double = 0
+    @State private var particles: [EnergyParticle] = []
+
+    var body: some View {
+        ZStack {
+            ForEach(particles) { particle in
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                color.opacity(particle.opacity),
+                                color.opacity(particle.opacity * 0.5),
+                                .clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 3
+                        )
+                    )
+                    .frame(width: 5 * particle.scale, height: 5 * particle.scale)
+                    .blur(radius: 1)
+                    .offset(
+                        x: cos(particle.angle) * particle.radius,
+                        y: sin(particle.angle) * particle.radius
+                    )
+            }
+        }
+        .onAppear {
+            initializeParticles()
+            guard isAnimating else { return }
+            withAnimation(.linear(duration: 8.0).repeatForever(autoreverses: false)) {
+                rotation = 360
+            }
+            startParticleLifecycle()
+        }
+        .onChange(of: rotation) { _ in
+            updateParticlePositions()
+        }
+    }
+
+    private func initializeParticles() {
+        particles = (0..<particleCount).map { i in
+            EnergyParticle(
+                angle: Double(i) * (2 * .pi / Double(particleCount)),
+                radius: CGFloat(22 + Double.random(in: -3...3)),
+                opacity: Double.random(in: 0.4...0.8),
+                scale: CGFloat.random(in: 0.6...1.2),
+                speed: Double.random(in: 0.8...1.2),
+                birthTime: Date()
+            )
+        }
+    }
+
+    private func updateParticlePositions() {
+        for i in particles.indices {
+            particles[i].angle += 0.02 * particles[i].speed
+        }
+    }
+
+    private func startParticleLifecycle() {
+        Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
+            updateParticlePositions()
+            for i in particles.indices {
+                particles[i].opacity = 0.4 + 0.4 * sin(Date().timeIntervalSince(particles[i].birthTime) * 2)
+            }
+        }
+    }
+}
+
+private struct AvatarBreathingView: View {
+    let isAnimating: Bool
+
+    @State private var breathScale: CGFloat = 1.0
+    @State private var tiltAngle: Double = 0
+
+    private let randomTiltTimer = Timer.publish(every: 3.0, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        content
+            .scaleEffect(breathScale)
+            .rotationEffect(.degrees(tiltAngle))
+            .onAppear {
+                guard isAnimating else { return }
+                withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+                    breathScale = 1.03
+                }
+            }
+            .onReceive(randomTiltTimer) { _ in
+                guard isAnimating else { return }
+                let newTilt = Double.random(in: -3...3)
+                withAnimation(.easeInOut(duration: 1.5)) {
+                    tiltAngle = newTilt
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation(.easeInOut(duration: 1.0)) {
+                        tiltAngle = 0
+                    }
+                }
+            }
+    }
+
+    var content: some View {
+        Rectangle().opacity(0)
+    }
+}
+
+private struct EnhancedAvatarStageView: View {
+    let spriteCharacter: StatusSpriteCharacter?
+    let statusColor: Color
+    let isRunning: Bool
+    let isAnimating: Bool
+    let size: CGFloat
+    let onTap: (() -> Void)?
+
+    @State private var isHovering = false
+    @StateObject private var particleSystem = ParticleSystem()
+
+    private var intensity: Double {
+        isRunning ? 1.0 : (isHovering ? 0.8 : 0.6)
+    }
+
+    var body: some View {
+        ZStack {
+            // Outer aura glow
+            AvatarAuraView(
+                baseColor: statusColor,
+                isAnimating: isAnimating,
+                intensity: intensity
+            )
+
+            // Pulsing energy rings
+            PulsingRingsView(
+                color: statusColor,
+                isAnimating: isAnimating && isRunning
+            )
+
+            // Orbiting particles
+            OrbitingParticlesView(
+                color: statusColor,
+                isAnimating: isAnimating && isRunning,
+                particleCount: isRunning ? 8 : 4
+            )
+
+            // Main stage container
+            ZStack {
+                // Glass stage background
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                .white.opacity(0.15),
+                                .white.opacity(0.08),
+                                .white.opacity(0.03)
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: size / 2
+                        )
+                    )
+                    .frame(width: size, height: size)
+
+                // Status-colored inner glow
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                statusColor.opacity(isRunning ? 0.25 : 0.15),
+                                statusColor.opacity(isRunning ? 0.15 : 0.08),
+                                .clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: size / 2 - 5
+                        )
+                    )
+                    .frame(width: size - 10, height: size - 10)
+                    .blur(radius: 6)
+
+                // The sprite with breathing effect
+                if let spriteCharacter {
+                    SpriteAnimationView(
+                        character: spriteCharacter,
+                        isAnimating: isAnimating,
+                        size: size - 16
+                    )
+                    .modifier(AvatarBreathingModifier(isEnabled: isAnimating))
+                    .scaleEffect(1.12)
+                }
+            }
+            .frame(width: size, height: size)
+            .overlay(
+                Circle()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(isHovering ? 0.35 : 0.22),
+                                .white.opacity(isHovering ? 0.18 : 0.10)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1.5
+                    )
+            )
+        }
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovering = hovering
+            }
+        }
+        .contentShape(Circle())
+        .onTapGesture {
+            onTap?()
+        }
+        .help(onTap != nil ? "Open project in VS Code" : "")
+    }
+}
+
+private struct AvatarBreathingModifier: ViewModifier {
+    let isEnabled: Bool
+
+    @State private var breathScale: CGFloat = 1.0
+    @State private var tiltAngle: Double = 0
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(breathScale)
+            .rotationEffect(.degrees(tiltAngle))
+            .onAppear {
+                guard isEnabled else { return }
+                withAnimation(.easeInOut(duration: 2.8).repeatForever(autoreverses: true)) {
+                    breathScale = 1.04
+                }
+                startRandomTilt()
+            }
+    }
+
+    private func startRandomTilt() {
+        Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
+            let newTilt = Double.random(in: -2.5...2.5)
+            withAnimation(.easeInOut(duration: 1.2)) {
+                tiltAngle = newTilt
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                withAnimation(.easeInOut(duration: 0.8)) {
+                    tiltAngle = 0
+                }
+            }
+        }
+    }
+}
+
 private struct PulsingCircle: View {
     let color: Color
     let size: CGFloat
@@ -748,6 +1164,7 @@ struct FloatNotificationView: View {
                     isAnimating: showIdleAnimations && shouldAnimateStatus,
                     size: floaterSize.spriteSize
                 )
+                .modifier(AvatarBreathingModifier(isEnabled: showIdleAnimations && shouldAnimateStatus))
             } else {
                 Text("\u{1F986}")
                     .font(.system(size: floaterSize.spriteSize - 14))
@@ -790,59 +1207,26 @@ struct FloatNotificationView: View {
     }
 
     private var persistentSpriteStage: some View {
-        let stageSize = floaterSize.stageSize
-        return ZStack {
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            .white.opacity(0.12),
-                            .white.opacity(0.06)
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: stageSize / 2
-                    )
-                )
-                .frame(width: stageSize, height: stageSize)
-
-            Circle()
-                .fill(statusAccentColor.opacity(isRunning ? 0.18 : 0.10))
-                .frame(width: stageSize - 10, height: stageSize - 10)
-                .blur(radius: 8)
-
-            duckIcon
-                .scaleEffect(1.1)
-        }
-        .frame(width: stageSize, height: stageSize)
-        .overlay(
-            Circle()
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            .white.opacity(0.16),
-                            .white.opacity(0.06)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 1
-                )
+        EnhancedAvatarStageView(
+            spriteCharacter: spriteCharacter,
+            statusColor: statusAccentColor,
+            isRunning: isRunning,
+            isAnimating: showIdleAnimations && shouldAnimateStatus,
+            size: floaterSize.stageSize,
+            onTap: nil
         )
     }
 
     @ViewBuilder
     private var tappablePersistentSpriteStage: some View {
-        if let onTap {
-            Button(action: onTap) {
-                persistentSpriteStage
-            }
-            .buttonStyle(.plain)
-            .contentShape(Circle())
-            .help("Open project in VS Code")
-        } else {
-            persistentSpriteStage
-        }
+        EnhancedAvatarStageView(
+            spriteCharacter: spriteCharacter,
+            statusColor: statusAccentColor,
+            isRunning: isRunning,
+            isAnimating: showIdleAnimations && shouldAnimateStatus,
+            size: floaterSize.stageSize,
+            onTap: onTap
+        )
     }
 
     private var closeButton: some View {

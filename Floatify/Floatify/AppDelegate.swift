@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 
 struct SessionDescriptor: Equatable {
     let id: String
@@ -266,7 +267,7 @@ final class CodexActivityMonitor {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
     private var statusItem: NSStatusItem!
     private var pipeSource: DispatchSourceRead?
     private let pipePath = "/var/tmp/floatify.pipe"
@@ -275,6 +276,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var claudeSessionsByID: [String: SessionDescriptor] = [:]
     private var claudeRunningStateByID: [String: Bool] = [:]
     private var codexSessionsByID: [String: SessionDescriptor] = [:]
+    private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusItem()
@@ -339,15 +341,76 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let menu = NSMenu()
+
+        let settingsItem = NSMenuItem(title: "Settings...", action: nil, keyEquivalent: ",")
+        settingsItem.target = nil
+        settingsItem.representedObject = self
+        settingsItem.action = #selector(AppDelegate.openSettings(_:))
+        menu.addItem(settingsItem)
+
+        menu.addItem(NSMenuItem.separator())
+
         let testItem = NSMenuItem(title: "Test Notification", action: #selector(testNotification), keyEquivalent: "")
         testItem.target = self
         menu.addItem(testItem)
+
         let arrangeItem = NSMenuItem(title: "Arrange", action: #selector(arrangeFloaters), keyEquivalent: "")
         arrangeItem.target = self
         menu.addItem(arrangeItem)
+
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit Floatify", action: #selector(quit), keyEquivalent: "q"))
+        menu.addItem(withTitle: "Quit Floatify", action: #selector(quit), keyEquivalent: "q")
+
+        menu.delegate = self
         statusItem.menu = menu
+    }
+
+    @objc func openSettings(_ sender: Any?) {
+        NSLog("Floatify: openSettings called with sender: \(String(describing: sender))")
+        if let window = settingsWindow {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 320, height: 150),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Floatify Settings"
+        window.contentView = NSHostingView(rootView: SettingsView())
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+        settingsWindow = window
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        NSLog("Floatify: Settings window created and shown")
+    }
+
+    @objc func openSettings() {
+        NSLog("Floatify: openSettings called")
+        if let window = settingsWindow {
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 320, height: 150),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Floatify Settings"
+        window.contentView = NSHostingView(rootView: SettingsView())
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+        settingsWindow = window
+        window.makeKeyAndOrderFront(nil)
+        NSLog("Floatify: Settings window created and shown")
     }
 
     @objc private func testNotification() {
@@ -362,6 +425,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quit() {
         NSApplication.shared.terminate(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        if let window = notification.object as? NSWindow, window == settingsWindow {
+            settingsWindow = nil
+        }
     }
 
     private func setupPipeListener() {
