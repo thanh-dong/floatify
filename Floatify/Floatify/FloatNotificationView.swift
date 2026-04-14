@@ -391,7 +391,7 @@ struct FloaterPanelView: View {
         }
         .padding(8)
         .fixedSize()
-        .background(Color.clear)
+        .background(.clear)
     }
 }
 

@@ -268,6 +268,7 @@ class FloatNotificationManager {
         )
         view.wantsLayer = true
         view.layer?.backgroundColor = NSColor.clear.cgColor
+        view.layer?.isOpaque = false
         return view
     }
 
