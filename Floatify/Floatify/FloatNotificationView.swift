@@ -161,6 +161,14 @@ struct FloatNotificationView: View {
         !isDraggablePanel || animatesStatus
     }
 
+    private var showsStatusAsColorOnly: Bool {
+        isDraggablePanel && statusIndicatorColor != nil
+    }
+
+    private var statusAccentColor: Color {
+        statusIndicatorColor ?? .clear
+    }
+
     var body: some View {
         ZStack {
             if corner == .cursorFollow {
@@ -170,6 +178,11 @@ struct FloatNotificationView: View {
 
             RoundedRectangle(cornerRadius: 14)
                 .fill(.regularMaterial)
+
+            if showsStatusAsColorOnly {
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(statusAccentColor.opacity(0.12))
+            }
 
             LottiePanelBackground(
                 animationName: effectiveEffect.lottieFileName,
@@ -184,26 +197,34 @@ struct FloatNotificationView: View {
             )
             .clipShape(RoundedRectangle(cornerRadius: 14))
 
+            if showsStatusAsColorOnly {
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(statusAccentColor.opacity(0.7), lineWidth: 1.5)
+            }
+
             HStack(spacing: 10) {
                 duckIcon
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: showsStatusAsColorOnly ? 0 : 2) {
                     HStack(spacing: 6) {
                         if let statusIndicatorColor {
                             Circle()
                                 .fill(statusIndicatorColor)
-                                .frame(width: 8, height: 8)
+                                .frame(width: showsStatusAsColorOnly ? 12 : 8, height: showsStatusAsColorOnly ? 12 : 8)
+                                .shadow(color: statusIndicatorColor.opacity(showsStatusAsColorOnly ? 0.85 : 0), radius: 8, x: 0, y: 0)
                         }
 
                         Text(displayName)
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.secondary)
+                            .font(.system(size: showsStatusAsColorOnly ? 13 : 11, weight: .semibold))
+                            .foregroundColor(showsStatusAsColorOnly ? .primary : .secondary)
                             .lineLimit(1)
                     }
 
-                    Text(message)
-                        .font(.system(size: 13, weight: .medium))
-                        .lineLimit(2)
+                    if !showsStatusAsColorOnly {
+                        Text(message)
+                            .font(.system(size: 13, weight: .medium))
+                            .lineLimit(2)
+                    }
                 }
 
                 if !isDraggablePanel {
@@ -215,9 +236,9 @@ struct FloatNotificationView: View {
         }
         .fixedSize(horizontal: isDraggablePanel, vertical: false)
         .frame(width: isDraggablePanel ? nil : 280)
-        .frame(minHeight: 68)
+        .frame(minHeight: showsStatusAsColorOnly ? 64 : 68)
         .clipShape(RoundedRectangle(cornerRadius: 14))
-        .shadow(color: .black.opacity(0.18), radius: 10, x: 0, y: 4)
+        .shadow(color: showsStatusAsColorOnly ? statusAccentColor.opacity(0.22) : .black.opacity(0.18), radius: 10, x: 0, y: 4)
         .scaleEffect(panelScale)
         .opacity(panelOpacity)
         .allowsHitTesting(!isDraggablePanel)
