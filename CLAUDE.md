@@ -25,6 +25,10 @@ xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Debug bui
 xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
 ```
 
+- After every app build, make sure the running `Floatify.app` process is the fresh build you just produced.
+- Do not trust an older `/Applications/Floatify.app` or any previously launched copy.
+- If needed, quit the current `Floatify` process and launch the latest app from Xcode `DerivedData` before testing.
+
 ## Architecture
 
 ```

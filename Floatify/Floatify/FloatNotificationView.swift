@@ -216,7 +216,7 @@ struct FloatNotificationView: View {
 
             HStack(spacing: showsStatusAsColorOnly ? 10 : 12) {
                 if showsStatusAsColorOnly {
-                    persistentSpriteStage
+                    tappablePersistentSpriteStage
                 } else {
                     duckIcon
                 }
@@ -402,6 +402,19 @@ struct FloatNotificationView: View {
             Circle()
                 .stroke(.white.opacity(0.10), lineWidth: 1)
         )
+    }
+
+    @ViewBuilder
+    private var tappablePersistentSpriteStage: some View {
+        if let onTap {
+            Button(action: onTap) {
+                persistentSpriteStage
+            }
+            .buttonStyle(.plain)
+            .contentShape(Circle())
+        } else {
+            persistentSpriteStage
+        }
     }
 
     private var closeButton: some View {

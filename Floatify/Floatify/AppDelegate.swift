@@ -3,7 +3,13 @@ import AppKit
 struct SessionDescriptor: Equatable {
     let id: String
     let project: String
+    let projectPath: String?
     let isRunning: Bool
+}
+
+private struct ProjectContext: Equatable {
+    let name: String
+    let path: String?
 }
 
 private func commandOutput(executablePath: String, arguments: [String]) -> String? {
@@ -41,7 +47,7 @@ final class ClaudeSessionMonitor {
     private let queue = DispatchQueue(label: "com.floatify.claude-sessions")
     private var timer: DispatchSourceTimer?
     private var lastPublished: [SessionDescriptor] = []
-    private var projectCache: [Int: String] = [:]
+    private var projectCache: [Int: ProjectContext] = [:]
 
     func start() {
         stop()
@@ -91,10 +97,12 @@ final class ClaudeSessionMonitor {
             }
 
             activePIDs.insert(pid)
+            let projectContext = cachedProjectContext(for: pid, fallbackProject: "Claude Code")
             sessions.append(
                 SessionDescriptor(
                     id: "claude:\(pid)",
-                    project: cachedProjectName(for: pid),
+                    project: projectContext.name,
+                    projectPath: projectContext.path,
                     isRunning: false
                 )
             )
@@ -104,17 +112,21 @@ final class ClaudeSessionMonitor {
         return sessions.sorted { $0.id < $1.id }
     }
 
-    private func cachedProjectName(for pid: Int) -> String {
+    private func cachedProjectContext(for pid: Int, fallbackProject: String) -> ProjectContext {
         if let cached = projectCache[pid] {
             return cached
         }
 
-        let project = lookupProjectName(for: pid) ?? "Claude Code"
-        projectCache[pid] = project
-        return project
+        let projectPath = lookupProjectPath(for: pid)
+        let context = ProjectContext(
+            name: projectPath.map(projectName(for:)) ?? fallbackProject,
+            path: projectPath
+        )
+        projectCache[pid] = context
+        return context
     }
 
-    private func lookupProjectName(for pid: Int) -> String? {
+    private func lookupProjectPath(for pid: Int) -> String? {
         guard let output = commandOutput(executablePath: "/usr/sbin/lsof", arguments: ["-a", "-d", "cwd", "-p", "\(pid)"]) else {
             return nil
         }
@@ -122,7 +134,7 @@ final class ClaudeSessionMonitor {
         for rawLine in output.split(separator: "\n").dropFirst() {
             let parts = rawLine.split(maxSplits: 8, omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
             guard let pathField = parts.last else { continue }
-            return projectName(for: String(pathField))
+            return String(pathField)
         }
 
         return nil
@@ -136,7 +148,7 @@ final class CodexActivityMonitor {
     private var timer: DispatchSourceTimer?
     private var lastPublished: [SessionDescriptor] = []
     private var lastDetectedActivityAtBySessionID: [String: Date] = [:]
-    private var projectCache: [Int: String] = [:]
+    private var projectCache: [Int: ProjectContext] = [:]
     private let activeHoldDuration: TimeInterval = 8
 
     func start() {
@@ -214,26 +226,32 @@ final class CodexActivityMonitor {
             let isRunning = lastDetectedActivityAtBySessionID[id].map {
                 now.timeIntervalSince($0) < activeHoldDuration
             } ?? false
+            let projectContext = cachedProjectContext(for: nodePID, fallbackProject: "Codex")
 
             return SessionDescriptor(
                 id: id,
-                project: cachedProjectName(for: nodePID),
+                project: projectContext.name,
+                projectPath: projectContext.path,
                 isRunning: isRunning
             )
         }
     }
 
-    private func cachedProjectName(for pid: Int) -> String {
+    private func cachedProjectContext(for pid: Int, fallbackProject: String) -> ProjectContext {
         if let cached = projectCache[pid] {
             return cached
         }
 
-        let project = lookupProjectName(for: pid) ?? "Codex"
-        projectCache[pid] = project
-        return project
+        let projectPath = lookupProjectPath(for: pid)
+        let context = ProjectContext(
+            name: projectPath.map(projectName(for:)) ?? fallbackProject,
+            path: projectPath
+        )
+        projectCache[pid] = context
+        return context
     }
 
-    private func lookupProjectName(for pid: Int) -> String? {
+    private func lookupProjectPath(for pid: Int) -> String? {
         guard let output = commandOutput(executablePath: "/usr/sbin/lsof", arguments: ["-a", "-d", "cwd", "-p", "\(pid)"]) else {
             return nil
         }
@@ -241,7 +259,7 @@ final class CodexActivityMonitor {
         for rawLine in output.split(separator: "\n").dropFirst() {
             let parts = rawLine.split(maxSplits: 8, omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
             guard let pathField = parts.last else { continue }
-            return projectName(for: String(pathField))
+            return String(pathField)
         }
 
         return nil
@@ -254,7 +272,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let pipePath = "/var/tmp/floatify.pipe"
     private let claudeSessionMonitor = ClaudeSessionMonitor()
     private let codexActivityMonitor = CodexActivityMonitor()
-    private var claudeSessionsByID: [String: String] = [:]
+    private var claudeSessionsByID: [String: SessionDescriptor] = [:]
     private var claudeRunningStateByID: [String: Bool] = [:]
     private var codexSessionsByID: [String: SessionDescriptor] = [:]
 
@@ -275,7 +293,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupPersistentStatusFloater() {
         claudeSessionMonitor.onSessionsChange = { [weak self] sessions in
             guard let self else { return }
-            self.claudeSessionsByID = Dictionary(uniqueKeysWithValues: sessions.map { ($0.id, $0.project) })
+            self.claudeSessionsByID = Dictionary(uniqueKeysWithValues: sessions.map { ($0.id, $0) })
             self.claudeRunningStateByID = self.claudeRunningStateByID.filter { self.claudeSessionsByID[$0.key] != nil }
             self.refreshPersistentStatuses()
         }
@@ -292,11 +310,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func refreshPersistentStatuses() {
-        var items: [PersistentStatusItem] = claudeSessionsByID.map { id, project in
-            let isRunning = claudeRunningStateByID[id] ?? false
+        var items: [PersistentStatusItem] = claudeSessionsByID.values.map { session in
+            let isRunning = claudeRunningStateByID[session.id] ?? false
             return PersistentStatusItem(
-                id: id,
-                project: project,
+                id: session.id,
+                project: session.project,
+                projectPath: session.projectPath,
                 state: isRunning ? .running : .complete
             )
         }
@@ -305,6 +324,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             PersistentStatusItem(
                 id: session.id,
                 project: session.project,
+                projectPath: session.projectPath,
                 state: session.isRunning ? .running : .complete
             )
         })
@@ -393,7 +413,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let sessionID = (json["session"] as? String) ?? "\(source):\(project)"
 
             if source == "claude" {
-                claudeSessionsByID[sessionID] = project
+                let existingSession = claudeSessionsByID[sessionID]
+                claudeSessionsByID[sessionID] = SessionDescriptor(
+                    id: sessionID,
+                    project: project,
+                    projectPath: existingSession?.projectPath,
+                    isRunning: isRunning
+                )
                 claudeRunningStateByID[sessionID] = isRunning
                 refreshPersistentStatuses()
             }

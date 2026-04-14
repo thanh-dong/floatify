@@ -41,6 +41,7 @@ enum ClaudeStatusState {
 struct PersistentStatusItem {
     let id: String
     let project: String
+    let projectPath: String?
     let state: ClaudeStatusState
 }
 
@@ -194,7 +195,6 @@ class FloatNotificationManager {
             message: message,
             project: project,
             corner: corner,
-            onTap: { [weak self] in self?.dismiss(panel: newPanel) },
             dismissController: dismissController
         )
         newPanel.contentView = NSHostingView(rootView: view)
@@ -218,6 +218,9 @@ class FloatNotificationManager {
             item: item,
             dismissController: dismissController,
             playsEntryAnimation: true,
+            onTap: { [weak self] in
+                self?.openProjectInVSCode(for: item)
+            },
             onClose: { [weak self] in
                 self?.closePersistentStatusPanel(id: item.id)
             }
@@ -252,6 +255,9 @@ class FloatNotificationManager {
             item: item,
             dismissController: dismissController,
             playsEntryAnimation: playsEntryAnimation,
+            onTap: { [weak self] in
+                self?.openProjectInVSCode(for: item)
+            },
             onClose: { [weak self] in
                 self?.closePersistentStatusPanel(id: item.id)
             }
@@ -267,6 +273,7 @@ class FloatNotificationManager {
         item: PersistentStatusItem,
         dismissController: DismissController,
         playsEntryAnimation: Bool,
+        onTap: (() -> Void)? = nil,
         onClose: (() -> Void)? = nil
     ) -> NSHostingView<FloatNotificationView> {
         let style = statusStyle(for: item.id)
@@ -276,6 +283,7 @@ class FloatNotificationManager {
                 project: item.project,
                 corner: .bottomRight,
                 effect: style.effect,
+                onTap: onTap,
                 onClose: onClose,
                 statusIndicatorColor: item.state.indicatorColor,
                 spriteCharacter: style.spriteCharacter,
@@ -303,6 +311,44 @@ class FloatNotificationManager {
         return abs(hash)
     }
 
+    private func openProjectInVSCode(for item: PersistentStatusItem) {
+        guard let projectPath = item.projectPath,
+              FileManager.default.fileExists(atPath: projectPath) else {
+            return
+        }
+
+        let projectURL = URL(fileURLWithPath: projectPath, isDirectory: true)
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+
+        guard let appURL = preferredVSCodeApplicationURL() else {
+            NSWorkspace.shared.open(projectURL)
+            return
+        }
+
+        NSWorkspace.shared.open([projectURL], withApplicationAt: appURL, configuration: configuration) { _, error in
+            if let error {
+                NSLog("Floatify: Failed to open project in VS Code for %@ - %@", item.id, error.localizedDescription)
+            }
+        }
+    }
+
+    private func preferredVSCodeApplicationURL() -> URL? {
+        let bundleIdentifiers = [
+            "com.microsoft.VSCode",
+            "com.microsoft.VSCodeInsiders",
+            "com.vscodium"
+        ]
+
+        for bundleIdentifier in bundleIdentifiers {
+            if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) {
+                return appURL
+            }
+        }
+
+        return nil
+    }
+
     private func fittingPanelSize(for hostingView: NSView) -> CGSize {
         hostingView.layoutSubtreeIfNeeded()
         let size = hostingView.fittingSize
@@ -310,8 +356,8 @@ class FloatNotificationManager {
     }
 
     private func persistentStatusPanelSize(for item: PersistentStatusItem) -> CGSize {
-        let completeItem = PersistentStatusItem(id: item.id, project: item.project, state: .complete)
-        let runningItem = PersistentStatusItem(id: item.id, project: item.project, state: .running)
+        let completeItem = PersistentStatusItem(id: item.id, project: item.project, projectPath: item.projectPath, state: .complete)
+        let runningItem = PersistentStatusItem(id: item.id, project: item.project, projectPath: item.projectPath, state: .running)
         let completeView = makeStatusHostingView(
             item: completeItem,
             dismissController: DismissController(),
