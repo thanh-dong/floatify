@@ -15,7 +15,7 @@ class FloatPanel: NSPanel {
     }
 }
 
-enum ClaudeStatusState {
+enum ClaudeStatusState: Equatable {
     case running
     case complete
 
@@ -38,11 +38,22 @@ enum ClaudeStatusState {
     }
 }
 
-struct PersistentStatusItem {
+struct PersistentStatusItem: Identifiable {
     let id: String
     let project: String
     let projectPath: String?
     let state: ClaudeStatusState
+}
+
+struct FloaterPanelItem: Identifiable {
+    let item: PersistentStatusItem
+    let dismissController: DismissController
+    let playsEntryAnimation: Bool
+    let effect: String
+    let spriteCharacter: StatusSpriteCharacter
+    let floaterSize: FloaterSize
+
+    var id: String { item.id }
 }
 
 private struct PersistentStatusStyle {
@@ -55,20 +66,25 @@ class FloatNotificationManager {
 
     private var panels: [FloatPanel] = []
     private var cursorFollowTimers: [FloatPanel: Timer] = [:]
-    private var statusPanels: [String: FloatPanel] = [:]
+    private var floaterPanel: FloatPanel?
+    private var floaterPanelMoveObserver: NSObjectProtocol?
     private var currentStatusItemsByID: [String: PersistentStatusItem] = [:]
-    private var statusPanelMoveObservers: [String: NSObjectProtocol] = [:]
+    private var floaterDismissControllers: [String: DismissController] = [:]
     private var hiddenStatusPanelIDs: Set<String> = []
     private var closingStatusPanelIDs: Set<String> = []
     private let maxPanels = 8
     private let maxHorizontalPanels = 5
     private let horizontalStackOffset: CGFloat = 8
-    private let statusPanelVerticalSpacing: CGFloat = 12
-    private let statusPanelOriginKeyPrefix = "StatusFloaterOrigin."
+    private let floaterPanelSpacing: CGFloat = 10
+    private let floaterPanelOriginKey = "FloaterPanelOrigin"
+    private let floaterPanelCollapsedKey = "FloaterPanelCollapsed"
     private let statusEffects = ["slide", "fade", "dropdown", "marquee", "trail"]
     private let statusSpriteCharacters: [StatusSpriteCharacter] = [.squirtle, .wartortle, .blastoise]
+    private var isFloaterPanelCollapsed: Bool
 
-    private init() {}
+    private init() {
+        isFloaterPanelCollapsed = false
+    }
 
     func show(message: String, corner: Corner, duration: TimeInterval = 6, project: String?) {
         NSLog("Floatify: show() called - message: %@, corner: %@, duration: %.1f, project: %@", message, corner.rawValue, duration, project ?? "nil")
@@ -79,69 +95,36 @@ class FloatNotificationManager {
 
     func showPersistentStatuses(_ items: [PersistentStatusItem]) {
         DispatchQueue.main.async {
-            let visibleItems = items.filter { !self.hiddenStatusPanelIDs.contains($0.id) }
+            let activeIDs = Set(items.map(\.id))
+            self.hiddenStatusPanelIDs.formIntersection(activeIDs)
+            self.closingStatusPanelIDs.formIntersection(activeIDs)
+            self.floaterDismissControllers = self.floaterDismissControllers.filter { activeIDs.contains($0.key) }
+
+            let visibleItems = items
+                .filter { !self.hiddenStatusPanelIDs.contains($0.id) }
+                .sorted(by: Self.sortPersistentItems(_:_:))
+            let previousIDs = Set(self.currentStatusItemsByID.keys)
+
             self.currentStatusItemsByID = Dictionary(uniqueKeysWithValues: visibleItems.map { ($0.id, $0) })
-            let sortedItems = visibleItems.sorted {
-                if $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedSame {
-                    return $0.id < $1.id
-                }
-                return $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedAscending
-            }
-
-            let activeIDs = Set(sortedItems.map(\.id)).union(self.closingStatusPanelIDs)
-            let staleIDs = self.statusPanels.keys.filter { !activeIDs.contains($0) }
-            let didRemovePanels = !staleIDs.isEmpty
-            for id in staleIDs {
-                self.removeStatusPanel(id: id)
-            }
-
-            if didRemovePanels {
-                self.arrangePersistentStatuses()
-            }
-
-            var didAddPanels = false
-            for (index, item) in sortedItems.enumerated() {
-                if let panel = self.statusPanels[item.id] {
-                    self.updateStatusPanel(panel, item: item, playsEntryAnimation: false)
-                    if !self.hasStoredStatusPanelOrigin(for: item.id) {
-                        panel.setFrameOrigin(self.defaultStatusPanelOrigin(for: panel.frame.size, index: index))
-                    }
-                    panel.orderFrontRegardless()
-                    continue
-                }
-
-                let panel = self.makePersistentStatusPanel(item: item, index: index)
-                self.statusPanels[item.id] = panel
-                self.installStatusMoveObserver(for: panel, id: item.id)
-                panel.orderFrontRegardless()
-                didAddPanels = true
-            }
-
-            if didAddPanels {
-                self.arrangePersistentStatuses()
-            }
+            self.refreshFloaterPanel(animatedItemIDs: Set(visibleItems.map(\.id)).subtracting(previousIDs))
         }
     }
 
     func arrangePersistentStatuses() {
         DispatchQueue.main.async {
-            let sortedItems = self.currentStatusItemsByID.values.filter {
-                !self.hiddenStatusPanelIDs.contains($0.id)
-            }.sorted {
-                if $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedSame {
-                    return $0.id < $1.id
-                }
-                return $0.project.localizedCaseInsensitiveCompare($1.project) == .orderedAscending
-            }
-
-            for (index, item) in sortedItems.enumerated() {
-                guard let panel = self.statusPanels[item.id] else { continue }
-                let origin = self.defaultStatusPanelOrigin(for: panel.frame.size, index: index)
-                panel.setFrameOrigin(origin)
-                self.saveStatusPanelOrigin(origin, id: item.id)
-                panel.orderFrontRegardless()
-            }
+            guard let panel = self.floaterPanel else { return }
+            let origin = self.defaultFloaterPanelOrigin(for: panel.frame.size)
+            panel.setFrameOrigin(origin)
+            self.saveFloaterPanelOrigin(origin)
+            panel.orderFrontRegardless()
         }
+    }
+
+    private static func sortPersistentItems(_ lhs: PersistentStatusItem, _ rhs: PersistentStatusItem) -> Bool {
+        if lhs.project.localizedCaseInsensitiveCompare(rhs.project) == .orderedSame {
+            return lhs.id < rhs.id
+        }
+        return lhs.project.localizedCaseInsensitiveCompare(rhs.project) == .orderedAscending
     }
 
     private func createPanel(message: String, corner: Corner, duration: TimeInterval, project: String?) {
@@ -212,20 +195,35 @@ class FloatNotificationManager {
         }
     }
 
-    private func makePersistentStatusPanel(item: PersistentStatusItem, index: Int) -> FloatPanel {
-        let dismissController = DismissController()
-        let hostingView = makeStatusHostingView(
-            item: item,
-            dismissController: dismissController,
-            playsEntryAnimation: true,
-            onTap: { [weak self] in
-                self?.openProjectInVSCode(for: item)
-            },
-            onClose: { [weak self] in
-                self?.closePersistentStatusPanel(id: item.id)
-            }
-        )
-        let size = persistentStatusPanelSize(for: item)
+    private func refreshFloaterPanel(animatedItemIDs: Set<String> = []) {
+        let items = currentStatusItemsByID.values.sorted(by: Self.sortPersistentItems(_:_:))
+        guard !items.isEmpty else {
+            removeFloaterPanel()
+            return
+        }
+
+        let floaterItems = items.map { item in
+            let style = statusStyle(for: item.id)
+            return FloaterPanelItem(
+                item: item,
+                dismissController: floaterDismissController(for: item.id),
+                playsEntryAnimation: animatedItemIDs.contains(item.id),
+                effect: style.effect,
+                spriteCharacter: style.spriteCharacter,
+                floaterSize: floaterSizeFromDefaults()
+            )
+        }
+
+        let hostingView = makeFloaterPanelHostingView(items: floaterItems)
+        let size = fittingPanelSize(for: hostingView)
+
+        if let panel = floaterPanel {
+            panel.contentView = hostingView
+            resizeFloaterPanel(panel, to: size)
+            panel.orderFrontRegardless()
+            return
+        }
+
         let panel = FloatPanel(
             contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
@@ -243,58 +241,52 @@ class FloatNotificationManager {
         panel.ignoresMouseEvents = false
         panel.isMovableByWindowBackground = true
         panel.hidesOnDeactivate = false
-        panel.dismissController = dismissController
         panel.contentView = hostingView
-        panel.setFrameOrigin(restoredStatusPanelOrigin(for: size, id: item.id, index: index))
-        return panel
+        panel.setFrameOrigin(restoredFloaterPanelOrigin(for: size))
+
+        floaterPanel = panel
+        installFloaterPanelMoveObserver(for: panel)
+        panel.orderFrontRegardless()
     }
 
-    private func updateStatusPanel(_ panel: FloatPanel, item: PersistentStatusItem, playsEntryAnimation: Bool) {
-        let dismissController = DismissController()
-        let hostingView = makeStatusHostingView(
-            item: item,
-            dismissController: dismissController,
-            playsEntryAnimation: playsEntryAnimation,
-            onTap: { [weak self] in
-                self?.openProjectInVSCode(for: item)
-            },
-            onClose: { [weak self] in
-                self?.closePersistentStatusPanel(id: item.id)
-            }
-        )
-        let size = persistentStatusPanelSize(for: item)
-
-        panel.dismissController = dismissController
-        panel.contentView = hostingView
-        panel.setContentSize(size)
-    }
-
-    private func makeStatusHostingView(
-        item: PersistentStatusItem,
-        dismissController: DismissController,
-        playsEntryAnimation: Bool,
-        onTap: (() -> Void)? = nil,
-        onClose: (() -> Void)? = nil
-    ) -> NSHostingView<FloatNotificationView> {
-        let style = statusStyle(for: item.id)
-        let size = floaterSizeFromDefaults()
-        return NSHostingView(
-            rootView: FloatNotificationView(
-                message: item.state.message,
-                project: item.project,
-                corner: .bottomRight,
-                effect: style.effect,
-                onTap: onTap,
-                onClose: onClose,
-                statusIndicatorColor: item.state.indicatorColor,
-                spriteCharacter: style.spriteCharacter,
-                animatesStatus: item.state == .running,
-                isDraggablePanel: true,
-                playsEntryAnimation: playsEntryAnimation,
-                floaterSize: size,
-                dismissController: dismissController
+    private func makeFloaterPanelHostingView(items: [FloaterPanelItem]) -> NSHostingView<FloaterPanelView> {
+        let view = NSHostingView(
+            rootView: FloaterPanelView(
+                items: items,
+                spacing: floaterPanelSpacing,
+                isCollapsed: isFloaterPanelCollapsed,
+                onToggleCollapsed: { [weak self] in
+                    self?.toggleFloaterPanelCollapsed()
+                },
+                onItemTap: { [weak self] item in
+                    self?.openProjectInVSCode(for: item)
+                },
+                onItemClose: { [weak self] item in
+                    self?.closePersistentStatusPanel(id: item.id)
+                }
             )
         )
+        view.wantsLayer = true
+        view.layer?.backgroundColor = NSColor.clear.cgColor
+        return view
+    }
+
+    private func toggleFloaterPanelCollapsed() {
+        isFloaterPanelCollapsed.toggle()
+        UserDefaults.standard.set(isFloaterPanelCollapsed, forKey: floaterPanelCollapsedKey)
+        refreshFloaterPanel()
+    }
+
+    private func floaterDismissController(for id: String) -> DismissController {
+        if let controller = floaterDismissControllers[id] {
+            controller.shouldDismiss = false
+            controller.onDismissComplete = nil
+            return controller
+        }
+
+        let controller = DismissController()
+        floaterDismissControllers[id] = controller
+        return controller
     }
 
     private func floaterSizeFromDefaults() -> FloaterSize {
@@ -366,84 +358,73 @@ class FloatNotificationManager {
         return CGSize(width: ceil(size.width), height: ceil(size.height))
     }
 
-    private func persistentStatusPanelSize(for item: PersistentStatusItem) -> CGSize {
-        let completeItem = PersistentStatusItem(id: item.id, project: item.project, projectPath: item.projectPath, state: .complete)
-        let runningItem = PersistentStatusItem(id: item.id, project: item.project, projectPath: item.projectPath, state: .running)
-        let completeView = makeStatusHostingView(
-            item: completeItem,
-            dismissController: DismissController(),
-            playsEntryAnimation: false
-        )
-        let runningView = makeStatusHostingView(
-            item: runningItem,
-            dismissController: DismissController(),
-            playsEntryAnimation: false
-        )
-        let completeSize = fittingPanelSize(for: completeView)
-        let runningSize = fittingPanelSize(for: runningView)
-
-        return CGSize(
-            width: max(completeSize.width, runningSize.width),
-            height: max(completeSize.height, runningSize.height)
-        )
-    }
-
-    private func installStatusMoveObserver(for panel: FloatPanel, id: String) {
-        if let observer = statusPanelMoveObservers[id] {
+    private func installFloaterPanelMoveObserver(for panel: FloatPanel) {
+        if let observer = floaterPanelMoveObserver {
             NotificationCenter.default.removeObserver(observer)
         }
 
-        statusPanelMoveObservers[id] = NotificationCenter.default.addObserver(
+        floaterPanelMoveObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.didMoveNotification,
             object: panel,
             queue: .main
         ) { [weak self, weak panel] _ in
             guard let origin = panel?.frame.origin else { return }
-            self?.saveStatusPanelOrigin(origin, id: id)
+            self?.saveFloaterPanelOrigin(origin)
         }
     }
 
-    private func removeStatusPanel(id: String) {
-        if let observer = statusPanelMoveObservers[id] {
+    private func removeFloaterPanel() {
+        if let observer = floaterPanelMoveObserver {
             NotificationCenter.default.removeObserver(observer)
-            statusPanelMoveObservers.removeValue(forKey: id)
+            floaterPanelMoveObserver = nil
         }
 
-        if let panel = statusPanels[id] {
+        if let panel = floaterPanel {
             panel.orderOut(nil)
-            statusPanels.removeValue(forKey: id)
+            floaterPanel = nil
         }
+
+        isFloaterPanelCollapsed = false
+        UserDefaults.standard.set(false, forKey: floaterPanelCollapsedKey)
     }
 
     private func closePersistentStatusPanel(id: String) {
-        guard let panel = statusPanels[id], !closingStatusPanelIDs.contains(id) else {
+        guard currentStatusItemsByID[id] != nil, !closingStatusPanelIDs.contains(id) else {
             return
         }
 
         hiddenStatusPanelIDs.insert(id)
         closingStatusPanelIDs.insert(id)
-        arrangePersistentStatuses()
 
-        if let controller = panel.dismissController {
+        if let controller = floaterDismissControllers[id] {
             controller.dismiss { [weak self] in
-                guard let self = self else { return }
-                panel.orderOut(nil)
-                self.removeStatusPanel(id: id)
-                self.closingStatusPanelIDs.remove(id)
-                self.arrangePersistentStatuses()
+                self?.finalizeClosePersistentStatusPanel(id: id)
             }
         } else {
-            panel.orderOut(nil)
-            removeStatusPanel(id: id)
-            closingStatusPanelIDs.remove(id)
-            arrangePersistentStatuses()
+            finalizeClosePersistentStatusPanel(id: id)
         }
     }
 
-    private func restoredStatusPanelOrigin(for size: CGSize, id: String, index: Int) -> CGPoint {
+    private func finalizeClosePersistentStatusPanel(id: String) {
+        currentStatusItemsByID.removeValue(forKey: id)
+        floaterDismissControllers.removeValue(forKey: id)
+        closingStatusPanelIDs.remove(id)
+        refreshFloaterPanel()
+    }
+
+    private func resizeFloaterPanel(_ panel: FloatPanel, to size: CGSize) {
+        let origin = clampedFloaterPanelOrigin(
+            CGPoint(x: panel.frame.maxX - size.width, y: panel.frame.minY),
+            size: size
+        )
+        panel.setFrame(NSRect(origin: origin, size: size), display: true)
+        saveFloaterPanelOrigin(origin)
+    }
+
+    private func restoredFloaterPanelOrigin(for size: CGSize) -> CGPoint {
         let defaults = UserDefaults.standard
-        let defaultOrigin = defaultStatusPanelOrigin(for: size, index: index)
-        guard let storedOrigin = defaults.dictionary(forKey: statusPanelOriginKey(for: id)) else {
+        let defaultOrigin = defaultFloaterPanelOrigin(for: size)
+        guard let storedOrigin = defaults.dictionary(forKey: floaterPanelOriginKey) else {
             return defaultOrigin
         }
 
@@ -452,28 +433,19 @@ class FloatNotificationManager {
             return defaultOrigin
         }
 
-        return clampedStatusPanelOrigin(CGPoint(x: x, y: y), size: size)
+        return clampedFloaterPanelOrigin(CGPoint(x: x, y: y), size: size)
     }
 
-    private func saveStatusPanelOrigin(_ origin: CGPoint, id: String) {
-        UserDefaults.standard.set(["x": origin.x, "y": origin.y], forKey: statusPanelOriginKey(for: id))
+    private func saveFloaterPanelOrigin(_ origin: CGPoint) {
+        UserDefaults.standard.set(["x": origin.x, "y": origin.y], forKey: floaterPanelOriginKey)
     }
 
-    private func hasStoredStatusPanelOrigin(for id: String) -> Bool {
-        UserDefaults.standard.dictionary(forKey: statusPanelOriginKey(for: id)) != nil
-    }
-
-    private func statusPanelOriginKey(for id: String) -> String {
-        statusPanelOriginKeyPrefix + id
-    }
-
-    private func defaultStatusPanelOrigin(for size: CGSize, index: Int) -> CGPoint {
+    private func defaultFloaterPanelOrigin(for size: CGSize) -> CGPoint {
         let config = PositionConfigManager.shared.config(for: .bottomRight)
-        let stackOffset = CGFloat(index) * (size.height + statusPanelVerticalSpacing)
-        return cornerOrigin(corner: .bottomRight, size: size, padding: config.margin, stackOffset: stackOffset)
+        return cornerOrigin(corner: .bottomRight, size: size, padding: config.margin)
     }
 
-    private func clampedStatusPanelOrigin(_ origin: CGPoint, size: CGSize) -> CGPoint {
+    private func clampedFloaterPanelOrigin(_ origin: CGPoint, size: CGSize) -> CGPoint {
         let candidateRect = CGRect(origin: origin, size: size)
         let screen = NSScreen.screens.first { $0.frame.intersects(candidateRect) } ?? NSScreen.main
         guard let screen else {

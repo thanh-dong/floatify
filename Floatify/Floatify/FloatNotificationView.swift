@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import Lottie
 
@@ -215,6 +216,185 @@ private struct ProgressRing: View {
     }
 }
 
+private final class WindowDragRegionView: NSView {
+    override var acceptsFirstResponder: Bool { true }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        self
+    }
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+        true
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        window?.performDrag(with: event)
+    }
+}
+
+private struct WindowDragRegion: NSViewRepresentable {
+    func makeNSView(context: Context) -> WindowDragRegionView {
+        let view = WindowDragRegionView(frame: .zero)
+        view.wantsLayer = true
+        view.layer?.backgroundColor = NSColor.clear.cgColor
+        return view
+    }
+
+    func updateNSView(_ nsView: WindowDragRegionView, context: Context) {}
+}
+
+private struct FloaterPanelHeaderView: View {
+    let itemCount: Int
+    let runningCount: Int
+    let isCollapsed: Bool
+    let onToggleCollapsed: () -> Void
+
+    @State private var isCollapseHovering = false
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ZStack {
+                WindowDragRegion()
+
+                HStack(spacing: 8) {
+                    VStack(spacing: 2.5) {
+                        ForEach(0..<3, id: \.self) { _ in
+                            HStack(spacing: 2.5) {
+                                Circle().fill(.white.opacity(0.25)).frame(width: 3, height: 3)
+                                Circle().fill(.white.opacity(0.25)).frame(width: 3, height: 3)
+                            }
+                        }
+                    }
+
+                    Text("Floaters")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.primary)
+
+                    Text("\(itemCount)")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(.white.opacity(0.08)))
+
+                    if runningCount > 0 {
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(.red)
+                                .frame(width: 6, height: 6)
+                            Text("\(runningCount)")
+                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .foregroundStyle(.red.opacity(0.9))
+                        }
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(.red.opacity(0.10)))
+                    }
+
+                    Spacer(minLength: 0)
+                }
+                .padding(.leading, 12)
+                .padding(.trailing, 4)
+                .padding(.vertical, 10)
+                .allowsHitTesting(false)
+            }
+
+            Capsule()
+                .fill(.white.opacity(0.08))
+                .frame(width: 1, height: 18)
+
+            Button(action: onToggleCollapsed) {
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(isCollapseHovering ? .primary : .secondary)
+                    .rotationEffect(.degrees(isCollapsed ? 180 : 0))
+                    .animation(.easeInOut(duration: 0.2), value: isCollapsed)
+                    .frame(width: 34, height: 34)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .onHover { hovering in
+                isCollapseHovering = hovering
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.ultraThinMaterial)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [.white.opacity(0.15), .white.opacity(0.06)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .shadow(color: .black.opacity(0.18), radius: 16, x: 0, y: 8)
+    }
+}
+
+struct FloaterPanelView: View {
+    let items: [FloaterPanelItem]
+    let spacing: CGFloat
+    let isCollapsed: Bool
+    let onToggleCollapsed: () -> Void
+    let onItemTap: (PersistentStatusItem) -> Void
+    let onItemClose: (PersistentStatusItem) -> Void
+
+    private var runningCount: Int {
+        items.reduce(into: 0) { result, item in
+            if item.item.state == .running {
+                result += 1
+            }
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            FloaterPanelHeaderView(
+                itemCount: items.count,
+                runningCount: runningCount,
+                isCollapsed: isCollapsed,
+                onToggleCollapsed: onToggleCollapsed
+            )
+
+            if !isCollapsed {
+                VStack(alignment: .leading, spacing: spacing) {
+                    ForEach(items) { item in
+                        FloatNotificationView(
+                            message: item.item.state.message,
+                            project: item.item.project,
+                            corner: .bottomRight,
+                            effect: item.effect,
+                            onTap: {
+                                onItemTap(item.item)
+                            },
+                            onClose: {
+                                onItemClose(item.item)
+                            },
+                            statusIndicatorColor: item.item.state.indicatorColor,
+                            spriteCharacter: item.spriteCharacter,
+                            animatesStatus: item.item.state == .running,
+                            isDraggablePanel: true,
+                            playsEntryAnimation: item.playsEntryAnimation,
+                            floaterSize: item.floaterSize,
+                            dismissController: item.dismissController
+                        )
+                    }
+                }
+                .padding(.top, spacing)
+            }
+        }
+        .padding(8)
+        .fixedSize()
+        .background(Color.clear)
+    }
+}
+
 struct FloatNotificationView: View {
     let message: String
     var project: String?
@@ -392,8 +572,14 @@ struct FloatNotificationView: View {
                     Spacer(minLength: 0)
                 } else {
                     Capsule()
-                        .fill(.white.opacity(0.10))
-                        .frame(width: 1, height: floaterSize.stageSize - 16)
+                        .fill(
+                            LinearGradient(
+                                colors: [.white.opacity(0.14), .white.opacity(0.04)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 1, height: floaterSize.stageSize - 12)
                         .padding(.leading, 2)
                 }
             }
@@ -404,9 +590,10 @@ struct FloatNotificationView: View {
         .frame(width: isDraggablePanel ? nil : (isCompact ? 240 : 280))
         .frame(minHeight: showsStatusAsColorOnly ? (isCompact ? 56 : 72) : (isCompact ? 56 : 68))
         .clipShape(RoundedRectangle(cornerRadius: panelCornerRadius))
-        .shadow(color: .black.opacity(0.25), radius: 20, x: 0, y: 12)
+        .shadow(color: .black.opacity(isPanelHovering && isDraggablePanel ? 0.30 : 0.25), radius: isPanelHovering && isDraggablePanel ? 24 : 20, x: 0, y: isPanelHovering && isDraggablePanel ? 16 : 12)
         .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
         .shadow(color: statusAccentColor.opacity(isRunning ? 0.15 : 0), radius: 16, x: 0, y: 4)
+        .animation(.easeInOut(duration: 0.15), value: isPanelHovering)
         .scaleEffect(panelScale)
         .opacity(panelOpacity)
         .allowsHitTesting(true)
@@ -495,14 +682,15 @@ struct FloatNotificationView: View {
                 .strokeBorder(
                     LinearGradient(
                         colors: [
-                            .white.opacity(0.25),
-                            .white.opacity(0.08)
+                            .white.opacity(isPanelHovering && isDraggablePanel ? 0.35 : 0.25),
+                            .white.opacity(isPanelHovering && isDraggablePanel ? 0.14 : 0.08)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     ),
                     lineWidth: 1
                 )
+                .animation(.easeInOut(duration: 0.15), value: isPanelHovering)
 
             RoundedRectangle(cornerRadius: panelCornerRadius - 1)
                 .strokeBorder(.white.opacity(0.06), lineWidth: 1)
