@@ -430,7 +430,6 @@ private struct EnhancedAvatarStageView: View {
     let isRunning: Bool
     let isAnimating: Bool
     let size: CGFloat
-    let onTap: (() -> Void)?
 
     @State private var isHovering = false
     @StateObject private var particleSystem = ParticleSystem()
@@ -528,11 +527,6 @@ private struct EnhancedAvatarStageView: View {
                 isHovering = hovering
             }
         }
-        .contentShape(Circle())
-        .onTapGesture {
-            onTap?()
-        }
-        .help(onTap != nil ? "Open project in VS Code" : "")
     }
 }
 
@@ -1212,21 +1206,25 @@ struct FloatNotificationView: View {
             statusColor: statusAccentColor,
             isRunning: isRunning,
             isAnimating: showIdleAnimations && shouldAnimateStatus,
-            size: floaterSize.stageSize,
-            onTap: nil
+            size: floaterSize.stageSize
         )
     }
 
     @ViewBuilder
     private var tappablePersistentSpriteStage: some View {
-        EnhancedAvatarStageView(
-            spriteCharacter: spriteCharacter,
-            statusColor: statusAccentColor,
-            isRunning: isRunning,
-            isAnimating: showIdleAnimations && shouldAnimateStatus,
-            size: floaterSize.stageSize,
-            onTap: onTap
-        )
+        if let onTap {
+            Button(action: {
+                NSLog("Floatify: Avatar tapped, invoking onTap")
+                onTap()
+            }) {
+                persistentSpriteStage
+            }
+            .buttonStyle(.plain)
+            .contentShape(Circle())
+            .help("Open project in VS Code:")
+        } else {
+            persistentSpriteStage
+        }
     }
 
     private var closeButton: some View {

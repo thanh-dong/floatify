@@ -346,8 +346,15 @@ class FloatNotificationManager {
     }
 
     private func openProjectInVSCode(for item: PersistentStatusItem) {
-        guard let projectPath = item.projectPath,
-              FileManager.default.fileExists(atPath: projectPath) else {
+        NSLog("Floatify: openProjectInVSCode called for %@, projectPath: %@", item.id, item.projectPath ?? "nil")
+
+        guard let projectPath = item.projectPath else {
+            NSLog("Floatify: Cannot open project - projectPath is nil for %@", item.id)
+            return
+        }
+
+        guard FileManager.default.fileExists(atPath: projectPath) else {
+            NSLog("Floatify: Cannot open project - path does not exist: %@", projectPath)
             return
         }
 
@@ -356,13 +363,17 @@ class FloatNotificationManager {
         configuration.activates = true
 
         guard let appURL = preferredVSCodeApplicationURL() else {
+            NSLog("Floatify: No VS Code found, opening with default application")
             NSWorkspace.shared.open(projectURL)
             return
         }
 
+        NSLog("Floatify: Opening %@ in VS Code (%@)", projectPath, appURL.path)
         NSWorkspace.shared.open([projectURL], withApplicationAt: appURL, configuration: configuration) { _, error in
             if let error {
                 NSLog("Floatify: Failed to open project in VS Code for %@ - %@", item.id, error.localizedDescription)
+            } else {
+                NSLog("Floatify: Successfully opened %@ in VS Code", projectPath)
             }
         }
     }
