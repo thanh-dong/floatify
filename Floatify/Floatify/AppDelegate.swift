@@ -381,7 +381,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 320, height: 150),
+            contentRect: NSRect(x: 0, y: 0, width: 320, height: 280),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -405,7 +405,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 320, height: 150),
+            contentRect: NSRect(x: 0, y: 0, width: 320, height: 280),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -504,12 +504,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 idleTransitionTimers.removeValue(forKey: sessionID)
                 switch state {
                 case .running:
-                    idleTransitionTimers[sessionID] = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
+                    idleTransitionTimers[sessionID] = Timer.scheduledTimer(withTimeInterval: idleTimeoutSeconds, repeats: false) { [weak self] _ in
                         guard let self else { return }
                         self.claudeRunningStateByID[sessionID] = .idle
                         self.idleTransitionTimers.removeValue(forKey: sessionID)
                         self.refreshPersistentStatuses()
-                        self.idleTransitionTimers[sessionID] = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
+                        self.idleTransitionTimers[sessionID] = Timer.scheduledTimer(withTimeInterval: self.idleTimeoutSeconds, repeats: false) { [weak self] _ in
                             guard let self else { return }
                             self.claudeRunningStateByID[sessionID] = .complete
                             self.idleTransitionTimers.removeValue(forKey: sessionID)
@@ -517,7 +517,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                         }
                     }
                 case .idle:
-                    idleTransitionTimers[sessionID] = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
+                    idleTransitionTimers[sessionID] = Timer.scheduledTimer(withTimeInterval: idleTimeoutSeconds, repeats: false) { [weak self] _ in
                         guard let self else { return }
                         self.claudeRunningStateByID[sessionID] = .complete
                         self.idleTransitionTimers.removeValue(forKey: sessionID)
@@ -562,6 +562,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         DispatchQueue.main.async {
             FloatNotificationManager.shared.show(message: message, corner: corner, duration: duration, project: project)
         }
+    }
+
+    private var idleTimeoutSeconds: TimeInterval {
+        let stored = UserDefaults.standard.integer(forKey: "IdleTimeout")
+        return stored > 0 ? TimeInterval(stored) : 15.0
     }
 
     private func claudeStatusState(from rawValue: String) -> ClaudeStatusState? {
