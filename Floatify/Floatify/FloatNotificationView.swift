@@ -15,7 +15,7 @@ enum FloaterSize {
 
     var spriteSize: CGFloat {
         switch self {
-        case .compact: return 36
+        case .compact: return 38
         case .regular: return 44
         case .large: return 52
         }
@@ -23,7 +23,7 @@ enum FloaterSize {
 
     var statusDotSize: CGFloat {
         switch self {
-        case .compact: return 8
+        case .compact: return 6
         case .regular: return 10
         case .large: return 12
         }
@@ -31,7 +31,7 @@ enum FloaterSize {
 
     var cornerRadius: CGFloat {
         switch self {
-        case .compact: return 16
+        case .compact: return 14
         case .regular: return 20
         case .large: return 24
         }
@@ -39,7 +39,7 @@ enum FloaterSize {
 
     var horizontalPadding: CGFloat {
         switch self {
-        case .compact: return 10
+        case .compact: return 6
         case .regular: return 12
         case .large: return 14
         }
@@ -47,7 +47,7 @@ enum FloaterSize {
 
     var verticalPadding: CGFloat {
         switch self {
-        case .compact: return 6
+        case .compact: return 4
         case .regular: return 8
         case .large: return 10
         }
@@ -55,7 +55,7 @@ enum FloaterSize {
 
     var projectNameSize: CGFloat {
         switch self {
-        case .compact: return 12
+        case .compact: return 11
         case .regular: return 14
         case .large: return 16
         }
@@ -63,7 +63,7 @@ enum FloaterSize {
 
     var stageSize: CGFloat {
         switch self {
-        case .compact: return 44
+        case .compact: return 42
         case .regular: return 56
         case .large: return 64
         }
@@ -990,12 +990,12 @@ struct FloatNotificationView: View {
     private var panelWidth: CGFloat? {
         if isDraggablePanel {
             switch floaterSize {
-            case .compact: return 200
+            case .compact: return 170
             case .regular: return 260
             case .large: return 320
             }
         }
-        return isCompact ? 240 : 280
+        return isCompact ? 220 : 280
     }
 
     var body: some View {
@@ -1080,7 +1080,7 @@ struct FloatNotificationView: View {
         }
         .fixedSize(horizontal: isDraggablePanel ? false : true, vertical: false)
         .frame(width: panelWidth)
-        .frame(minHeight: showsStatusAsColorOnly ? (isCompact ? 56 : 72) : (isCompact ? 56 : 68))
+        .frame(minHeight: showsStatusAsColorOnly ? (isCompact ? 42 : 72) : (isCompact ? 42 : 68))
         .clipShape(RoundedRectangle(cornerRadius: panelCornerRadius))
         .shadow(color: .black.opacity(isPanelHovering && isDraggablePanel ? 0.30 : 0.25), radius: isPanelHovering && isDraggablePanel ? 24 : 20, x: 0, y: isPanelHovering && isDraggablePanel ? 16 : 12)
         .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
@@ -1268,12 +1268,12 @@ struct FloatNotificationView: View {
     }
 
     private var closeButton: some View {
-        let buttonSize: CGFloat = isCompact ? 16 : 18
+        let buttonSize: CGFloat = isCompact ? 14 : 18
         return Button(action: {
             onClose?()
         }) {
             Image(systemName: "xmark")
-                .font(.system(size: isCompact ? 7 : 8, weight: .bold))
+                .font(.system(size: isCompact ? 6 : 8, weight: .bold))
                 .foregroundStyle(isCloseHovering ? .primary : .secondary)
                 .frame(width: buttonSize, height: buttonSize)
                 .background(
