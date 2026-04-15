@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/HiepPP/floatify/main/demo.gif" alt="Floatify Demo" width="600">
+  <img src="website/public/demo.gif" alt="Floatify Demo" width="800">
 </p>
 
 ---

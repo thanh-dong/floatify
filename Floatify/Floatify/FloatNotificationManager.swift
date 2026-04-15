@@ -17,12 +17,15 @@ class FloatPanel: NSPanel {
 
 enum ClaudeStatusState: Equatable {
     case running
+    case idle
     case complete
 
     var message: String {
         switch self {
         case .running:
             return "Still running"
+        case .idle:
+            return "Idle"
         case .complete:
             return "Complete"
         }
@@ -32,6 +35,8 @@ enum ClaudeStatusState: Equatable {
         switch self {
         case .running:
             return .red
+        case .idle:
+            return .yellow
         case .complete:
             return .green
         }

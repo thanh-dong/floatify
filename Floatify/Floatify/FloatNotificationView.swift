@@ -615,6 +615,12 @@ private struct PulsingCircle: View {
 
     var body: some View {
         ZStack {
+            // Ambient glow - present for all states
+            Circle()
+                .fill(color.opacity(isPulsing ? 0.45 : 0.28))
+                .frame(width: size * 2.8, height: size * 2.8)
+                .blur(radius: isPulsing ? 6 : 5)
+
             if isPulsing {
                 Circle()
                     .fill(color.opacity(0.3))
@@ -625,6 +631,7 @@ private struct PulsingCircle: View {
             Circle()
                 .fill(color)
                 .frame(width: size, height: size)
+                .shadow(color: color.opacity(0.9), radius: 4, x: 0, y: 0)
         }
         .onAppear {
             guard isPulsing else { return }
@@ -823,7 +830,7 @@ struct FloaterPanelView: View {
                             },
                             statusIndicatorColor: item.item.state.indicatorColor,
                             sheetName: item.sheetName,
-                            animatesStatus: item.item.state == .running,
+                            animatesStatus: item.item.state == .running || item.item.state == .idle,
                             isDraggablePanel: true,
                             playsEntryAnimation: item.playsEntryAnimation,
                             floaterSize: item.floaterSize,
@@ -1060,7 +1067,7 @@ struct FloatNotificationView: View {
         .clipShape(RoundedRectangle(cornerRadius: panelCornerRadius))
         .shadow(color: .black.opacity(isPanelHovering && isDraggablePanel ? 0.30 : 0.25), radius: isPanelHovering && isDraggablePanel ? 24 : 20, x: 0, y: isPanelHovering && isDraggablePanel ? 16 : 12)
         .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
-        .shadow(color: statusAccentColor.opacity(isRunning ? 0.15 : 0), radius: 16, x: 0, y: 4)
+        .shadow(color: statusAccentColor.opacity(isRunning ? 0.25 : 0.12), radius: 20, x: 0, y: 6)
         .animation(.easeInOut(duration: 0.15), value: isPanelHovering)
         .scaleEffect(panelScale)
         .opacity(panelOpacity)
@@ -1109,27 +1116,25 @@ struct FloatNotificationView: View {
 
                 HStack {
                     Circle()
-                        .fill(statusAccentColor.opacity(isRunning ? 0.20 : 0.14))
+                        .fill(statusAccentColor.opacity(isRunning ? 0.30 : 0.22))
                         .frame(width: floaterSize.stageSize, height: floaterSize.stageSize)
-                        .blur(radius: 24)
+                        .blur(radius: 22)
                     Spacer()
                 }
                 .padding(.leading, -10)
 
-                if isRunning {
-                    RoundedRectangle(cornerRadius: panelCornerRadius)
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    statusAccentColor.opacity(0.08),
-                                    .clear
-                                ],
-                                center: .leading,
-                                startRadius: 0,
-                                endRadius: 120
-                            )
+                RoundedRectangle(cornerRadius: panelCornerRadius)
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                statusAccentColor.opacity(isRunning ? 0.10 : 0.06),
+                                .clear
+                            ],
+                            center: .leading,
+                            startRadius: 0,
+                            endRadius: 120
                         )
-                }
+                    )
             }
 
             RoundedRectangle(cornerRadius: panelCornerRadius)
@@ -1202,9 +1207,9 @@ struct FloatNotificationView: View {
                     )
                 } else {
                     Circle()
-                        .fill(statusIndicatorColor.opacity(0.20))
-                        .frame(width: statusDotSize + (showsStatusAsColorOnly ? 8 : 6), height: statusDotSize + (showsStatusAsColorOnly ? 8 : 6))
-                        .blur(radius: showsStatusAsColorOnly ? 6 : 2)
+                        .fill(statusIndicatorColor.opacity(showsStatusAsColorOnly ? 0.38 : 0.25))
+                        .frame(width: statusDotSize + (showsStatusAsColorOnly ? 10 : 6), height: statusDotSize + (showsStatusAsColorOnly ? 10 : 6))
+                        .blur(radius: showsStatusAsColorOnly ? 7 : 3)
                 }
 
                 PulsingCircle(

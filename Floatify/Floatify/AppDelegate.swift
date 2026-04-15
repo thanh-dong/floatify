@@ -274,8 +274,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     private let claudeSessionMonitor = ClaudeSessionMonitor()
     private let codexActivityMonitor = CodexActivityMonitor()
     private var claudeSessionsByID: [String: SessionDescriptor] = [:]
-    private var claudeRunningStateByID: [String: Bool] = [:]
+    private var claudeRunningStateByID: [String: ClaudeStatusState] = [:]
     private var codexSessionsByID: [String: SessionDescriptor] = [:]
+    private var idleTransitionTimers: [String: Timer] = [:]
     private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -297,6 +298,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             guard let self else { return }
             self.claudeSessionsByID = Dictionary(uniqueKeysWithValues: sessions.map { ($0.id, $0) })
             self.claudeRunningStateByID = self.claudeRunningStateByID.filter { self.claudeSessionsByID[$0.key] != nil }
+            // Clean up timers for removed sessions
+            let activeIDs = Set(self.claudeSessionsByID.keys)
+            for (id, timer) in self.idleTransitionTimers where !activeIDs.contains(id) {
+                timer.invalidate()
+            }
+            self.idleTransitionTimers = self.idleTransitionTimers.filter { activeIDs.contains($0.key) }
             self.refreshPersistentStatuses()
         }
 
@@ -313,12 +320,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
     private func refreshPersistentStatuses() {
         var items: [PersistentStatusItem] = claudeSessionsByID.values.map { session in
-            let isRunning = claudeRunningStateByID[session.id] ?? false
+            let state = claudeRunningStateByID[session.id] ?? .complete
             return PersistentStatusItem(
                 id: session.id,
                 project: session.project,
                 projectPath: session.projectPath,
-                state: isRunning ? .running : .complete
+                state: state
             )
         }
 
@@ -475,7 +482,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     private func handleJSON(_ json: [String: Any]) {
         NSLog("Floatify: handleJSON called with: %@", json)
         if let statusString = json["status"] as? String,
-           let isRunning = claudeRunningStatus(from: statusString) {
+           let state = claudeStatusState(from: statusString) {
             let source = (json["source"] as? String)?.lowercased() ?? "claude"
             let projectValue = (json["project"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
             let project = (projectValue?.isEmpty == false) ? projectValue! : source
@@ -487,10 +494,38 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                     id: sessionID,
                     project: project,
                     projectPath: existingSession?.projectPath,
-                    isRunning: isRunning
+                    isRunning: state == .running
                 )
-                claudeRunningStateByID[sessionID] = isRunning
+                claudeRunningStateByID[sessionID] = state
                 refreshPersistentStatuses()
+
+                // Auto-transition: running -> idle after 15s -> complete after 15s
+                idleTransitionTimers[sessionID]?.invalidate()
+                idleTransitionTimers.removeValue(forKey: sessionID)
+                switch state {
+                case .running:
+                    idleTransitionTimers[sessionID] = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
+                        guard let self else { return }
+                        self.claudeRunningStateByID[sessionID] = .idle
+                        self.idleTransitionTimers.removeValue(forKey: sessionID)
+                        self.refreshPersistentStatuses()
+                        self.idleTransitionTimers[sessionID] = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
+                            guard let self else { return }
+                            self.claudeRunningStateByID[sessionID] = .complete
+                            self.idleTransitionTimers.removeValue(forKey: sessionID)
+                            self.refreshPersistentStatuses()
+                        }
+                    }
+                case .idle:
+                    idleTransitionTimers[sessionID] = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
+                        guard let self else { return }
+                        self.claudeRunningStateByID[sessionID] = .complete
+                        self.idleTransitionTimers.removeValue(forKey: sessionID)
+                        self.refreshPersistentStatuses()
+                    }
+                case .complete:
+                    break
+                }
             }
         }
 
@@ -529,12 +564,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         }
     }
 
-    private func claudeRunningStatus(from rawValue: String) -> Bool? {
+    private func claudeStatusState(from rawValue: String) -> ClaudeStatusState? {
         switch rawValue.lowercased() {
         case "running":
-            return true
-        case "complete", "done", "idle":
-            return false
+            return .running
+        case "idle":
+            return .idle
+        case "complete", "done":
+            return .complete
         default:
             return nil
         }

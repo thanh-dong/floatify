@@ -89,6 +89,10 @@ Floatify/
 
 `status` accepts `running`, `complete`, `done`, or `idle`.
 
+Status flow with auto-transition:
+- `running` (red) -> `idle` (yellow) after 15s -> `complete` (green)
+- Send `idle` explicitly or let `running` sessions auto-transition via the 15s timer
+
 ## Configuration for Claude Code
 
 Add to `~/.claude/settings.json`:
