@@ -6,6 +6,8 @@ struct SessionDescriptor: Equatable {
     let project: String
     let projectPath: String?
     let isRunning: Bool
+    let lastActivity: Date
+    let modifiedFilesCount: Int
 }
 
 private struct ProjectContext: Equatable {
@@ -49,6 +51,8 @@ final class ClaudeSessionMonitor {
     private var timer: DispatchSourceTimer?
     private var lastPublished: [SessionDescriptor] = []
     private var projectCache: [Int: ProjectContext] = [:]
+    private var lastActivityCache: [Int: Date] = [:]
+    private var modifiedFilesCache: [Int: Int] = [:]
 
     func start() {
         stop()
@@ -99,17 +103,30 @@ final class ClaudeSessionMonitor {
 
             activePIDs.insert(pid)
             let projectContext = cachedProjectContext(for: pid, fallbackProject: "Claude Code")
+
+            // Get or create last activity timestamp
+            let lastActivity = lastActivityCache[pid] ?? Date()
+            lastActivityCache[pid] = lastActivity
+
+            // Count modified files in git repo
+            let modifiedCount = countModifiedFiles(for: projectContext.path)
+            modifiedFilesCache[pid] = modifiedCount
+
             sessions.append(
                 SessionDescriptor(
                     id: "claude:\(pid)",
                     project: projectContext.name,
                     projectPath: projectContext.path,
-                    isRunning: false
+                    isRunning: false,
+                    lastActivity: lastActivity,
+                    modifiedFilesCount: modifiedCount
                 )
             )
         }
 
         projectCache = projectCache.filter { activePIDs.contains($0.key) }
+        lastActivityCache = lastActivityCache.filter { activePIDs.contains($0.key) }
+        modifiedFilesCache = modifiedFilesCache.filter { activePIDs.contains($0.key) }
         return sessions.sorted { $0.id < $1.id }
     }
 
@@ -140,6 +157,14 @@ final class ClaudeSessionMonitor {
 
         return nil
     }
+
+    private func countModifiedFiles(for projectPath: String?) -> Int {
+        guard let path = projectPath else { return 0 }
+        guard let output = commandOutput(executablePath: "/usr/bin/git", arguments: ["-C", path, "status", "--porcelain"]) else {
+            return 0
+        }
+        return output.split(separator: "\n").count
+    }
 }
 
 final class CodexActivityMonitor {
@@ -150,6 +175,7 @@ final class CodexActivityMonitor {
     private var lastPublished: [SessionDescriptor] = []
     private var lastDetectedActivityAtBySessionID: [String: Date] = [:]
     private var projectCache: [Int: ProjectContext] = [:]
+    private var modifiedFilesCache: [Int: Int] = [:]
     private let activeHoldDuration: TimeInterval = 8
 
     func start() {
@@ -215,6 +241,7 @@ final class CodexActivityMonitor {
         let activeSessionIDs = Set(activeNodePIDs.map { "codex:\($0)" })
         lastDetectedActivityAtBySessionID = lastDetectedActivityAtBySessionID.filter { activeSessionIDs.contains($0.key) }
         projectCache = projectCache.filter { activeNodePIDs.contains($0.key) }
+        modifiedFilesCache = modifiedFilesCache.filter { activeNodePIDs.contains($0.key) }
 
         let now = Date()
         return activeNodePIDs.sorted().map { nodePID in
@@ -229,11 +256,20 @@ final class CodexActivityMonitor {
             } ?? false
             let projectContext = cachedProjectContext(for: nodePID, fallbackProject: "Codex")
 
+            // Count modified files in git repo
+            let modifiedCount = countModifiedFiles(for: projectContext.path)
+            modifiedFilesCache[nodePID] = modifiedCount
+
+            // Use last activity timestamp (from CPU detection or now)
+            let lastActivity = lastDetectedActivityAtBySessionID[id] ?? now
+
             return SessionDescriptor(
                 id: id,
                 project: projectContext.name,
                 projectPath: projectContext.path,
-                isRunning: isRunning
+                isRunning: isRunning,
+                lastActivity: lastActivity,
+                modifiedFilesCount: modifiedCount
             )
         }
     }
@@ -264,6 +300,14 @@ final class CodexActivityMonitor {
         }
 
         return nil
+    }
+
+    private func countModifiedFiles(for projectPath: String?) -> Int {
+        guard let path = projectPath else { return 0 }
+        guard let output = commandOutput(executablePath: "/usr/bin/git", arguments: ["-C", path, "status", "--porcelain"]) else {
+            return 0
+        }
+        return output.split(separator: "\n").count
     }
 }
 
@@ -325,7 +369,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 id: session.id,
                 project: session.project,
                 projectPath: session.projectPath,
-                state: state
+                state: state,
+                lastActivity: session.lastActivity,
+                modifiedFilesCount: session.modifiedFilesCount
             )
         }
 
@@ -334,7 +380,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 id: session.id,
                 project: session.project,
                 projectPath: session.projectPath,
-                state: session.isRunning ? .running : .complete
+                state: session.isRunning ? .running : .complete,
+                lastActivity: session.lastActivity,
+                modifiedFilesCount: session.modifiedFilesCount
             )
         })
 
@@ -490,11 +538,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
             if source == "claude" {
                 let existingSession = claudeSessionsByID[sessionID]
+                let now = Date()
                 claudeSessionsByID[sessionID] = SessionDescriptor(
                     id: sessionID,
                     project: project,
                     projectPath: existingSession?.projectPath,
-                    isRunning: state == .running
+                    isRunning: state == .running,
+                    lastActivity: now,
+                    modifiedFilesCount: existingSession?.modifiedFilesCount ?? 0
                 )
                 claudeRunningStateByID[sessionID] = state
                 refreshPersistentStatuses()

@@ -48,6 +48,8 @@ struct PersistentStatusItem: Identifiable {
     let project: String
     let projectPath: String?
     let state: ClaudeStatusState
+    let lastActivity: Date
+    let modifiedFilesCount: Int
 }
 
 struct FloaterPanelItem: Identifiable {

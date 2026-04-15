@@ -834,6 +834,8 @@ struct FloaterPanelView: View {
                             isDraggablePanel: true,
                             playsEntryAnimation: item.playsEntryAnimation,
                             floaterSize: item.floaterSize,
+                            lastActivity: item.item.lastActivity,
+                            modifiedFilesCount: item.item.modifiedFilesCount,
                             dismissController: item.dismissController
                         )
                     }
@@ -874,6 +876,8 @@ struct FloatNotificationView: View {
     var playsEntryAnimation = true
     var floaterSize: FloaterSize = .regular
     var isCompact: Bool = false
+    var lastActivity: Date?
+    var modifiedFilesCount: Int = 0
     @ObservedObject var dismissController: DismissController
 
     @State private var showGlow = false
@@ -900,6 +904,8 @@ struct FloatNotificationView: View {
         playsEntryAnimation: Bool = true,
         floaterSize: FloaterSize = .regular,
         isCompact: Bool = false,
+        lastActivity: Date? = nil,
+        modifiedFilesCount: Int = 0,
         dismissController: DismissController
     ) {
         self.message = message
@@ -916,6 +922,8 @@ struct FloatNotificationView: View {
         self.playsEntryAnimation = playsEntryAnimation
         self.floaterSize = floaterSize
         self.isCompact = isCompact || floaterSize == .compact
+        self.lastActivity = lastActivity
+        self.modifiedFilesCount = modifiedFilesCount
         self.dismissController = dismissController
         _panelScale = State(initialValue: playsEntryAnimation ? 0.85 : 1.0)
         _panelOpacity = State(initialValue: playsEntryAnimation ? 0 : 1.0)
@@ -927,6 +935,21 @@ struct FloatNotificationView: View {
 
     private var effectiveSound: String? {
         sound ?? corner.defaultSound
+    }
+
+    private var timeAgoText: String? {
+        guard let lastActivity = lastActivity else { return nil }
+        let interval = Date().timeIntervalSince(lastActivity)
+
+        if interval < 60 {
+            return "Just now"
+        } else if interval < 3600 {
+            let minutes = Int(interval) / 60
+            return "\(minutes)m ago"
+        } else {
+            let hours = Int(interval) / 3600
+            return "\(hours)h ago"
+        }
     }
 
     private var displayName: String {
@@ -1023,6 +1046,34 @@ struct FloatNotificationView: View {
                             Spacer(minLength: 0)
 
                             statusIndicator
+                        }
+
+                        // Metadata row: time ago + file changes
+                        HStack(spacing: 6) {
+                            if let timeText = timeAgoText {
+                                HStack(spacing: 2) {
+                                    Image(systemName: "clock")
+                                        .font(.system(size: isCompact ? 7 : 8))
+                                    Text(timeText)
+                                        .font(.system(size: isCompact ? 8 : 9))
+                                }
+                                .foregroundStyle(.secondary)
+                            }
+
+                            if modifiedFilesCount > 0 {
+                                HStack(spacing: 2) {
+                                    Image(systemName: "doc.badge.plus")
+                                        .font(.system(size: isCompact ? 7 : 8))
+                                    Text("\(modifiedFilesCount)")
+                                        .font(.system(size: isCompact ? 8 : 9, weight: .medium))
+                                }
+                                .foregroundStyle(.orange)
+                                .padding(.horizontal, isCompact ? 3 : 4)
+                                .padding(.vertical, isCompact ? 1 : 2)
+                                .background(Capsule().fill(.orange.opacity(0.15)))
+                            }
+
+                            Spacer(minLength: 0)
                         }
                     } else {
                         HStack(spacing: 6) {
