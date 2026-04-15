@@ -44,7 +44,7 @@ import Layout from '../layouts/Layout.astro';
         Per-session floaters that stay visible without stealing focus
       </p>
       <p class="text-lg text-terminal-text-tertiary">
-        A macOS menu bar app for Claude Code and Codex. It shows one persistent floater per live session, labels each one by project folder, and uses red and green status at a glance.
+        A macOS menu bar app for Claude Code and Codex. It shows one persistent floater per live session with project labels, color-coded status, git file changes count, and activity timestamps.
       </p>
     </div>
 
@@ -180,6 +180,14 @@ import Layout from '../layouts/Layout.astro';
         <h3 class="text-lg font-semibold text-terminal-text mb-2">Sprite HUD UI</h3>
         <p class="text-sm text-terminal-text-secondary">Persistent floaters use animated sprite characters and a compact HUD layout built for glanceable status.</p>
       </div>
+      <!-- Feature 8: File Changes & Activity -->
+      <div class="bg-terminal-card border border-terminal-border rounded-lg p-6 hover:-translate-y-1 hover:border-terminal-border-hover transition-all duration-200">
+        <svg class="w-6 h-6 text-terminal-text-secondary mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <h3 class="text-lg font-semibold text-terminal-text mb-2">File Changes & Activity</h3>
+        <p class="text-sm text-terminal-text-secondary">See git modified files count and time since last activity. Stay informed about what is happening in each session at a glance.</p>
+      </div>
     </div>
   </section>
 
@@ -251,7 +259,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="flex-1 flex flex-col items-center text-center">
         <div class="w-12 h-12 rounded-full bg-terminal-surface text-terminal-text flex items-center justify-center text-xl font-bold mb-4 z-10">3</div>
         <h3 class="text-lg font-semibold text-terminal-text mb-2">Persistent Floater</h3>
-        <p class="text-sm text-terminal-text-secondary">One HUD appears per session with project label, sprite, and color status.</p>
+        <p class="text-sm text-terminal-text-secondary">One HUD per session with project label, sprite, color status, file changes count, and activity timestamp.</p>
       </div>
     </div>
   </section>
@@ -347,7 +355,7 @@ import Layout from '../layouts/Layout.astro';
           "name": "What is Floatify?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Floatify is a macOS menu bar app that shows one persistent floater per Claude Code or Codex session, plus temporary notifications from the CLI. It uses FIFO pipe IPC for commands and process detection for live session tracking."
+            "text": "Floatify is a macOS menu bar app that shows one persistent floater per Claude Code or Codex session, plus temporary notifications from the CLI. It uses FIFO pipe IPC for commands and process detection for live session tracking. Each floater displays project name, status color, git file changes count, and time since last activity."
           }
         },
         {
@@ -381,6 +389,14 @@ import Layout from '../layouts/Layout.astro';
             "@type": "Answer",
             "text": "Add Stop and SessionEnd hooks to your Claude Code settings.json and send floatify --status complete. Avoid UserPromptSubmit for running state. Floatify handles live session discovery and the CLI handles the status payload."
           }
+        },
+        {
+          "@type": "Question",
+          "name": "What information does each floater show?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Each session floater displays the project folder name, status indicator (red/yellow/green), animated sprite character, count of modified files in the git repository, and time since last activity."
+          }
         }
       ]
     })} />
@@ -394,7 +410,7 @@ import Layout from '../layouts/Layout.astro';
           </svg>
         </summary>
         <p class="mt-3 text-sm text-terminal-text-secondary">
-          Floatify is a macOS menu bar app that shows one persistent floater per Claude Code or Codex session, plus temporary notifications from the CLI. It uses FIFO pipe IPC for commands and process detection for live session tracking.
+          Floatify is a macOS menu bar app that shows one persistent floater per Claude Code or Codex session, plus temporary notifications from the CLI. It uses FIFO pipe IPC for commands and process detection for live session tracking. Each floater displays project name, status color, git file changes count, and time since last activity.
         </p>
       </details>
       <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
@@ -428,6 +444,17 @@ import Layout from '../layouts/Layout.astro';
         </summary>
         <p class="mt-3 text-sm text-terminal-text-secondary">
           Floatify uses a named FIFO pipe at /var/tmp/floatify.pipe for communication. The floatify CLI sends JSON commands through this pipe, achieving sub-millisecond latency without requiring network permissions.
+        </p>
+      </details>
+      <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <summary class="flex items-center justify-between cursor-pointer list-none text-terminal-text font-medium">
+          <span>What information does each floater show?</span>
+          <svg class="w-5 h-5 text-terminal-text-muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <p class="mt-3 text-sm text-terminal-text-secondary">
+          Each session floater displays the project folder name, a status indicator (red for running, yellow for idle, green for complete), an animated sprite character, the count of modified files in the git repository, and the time since last activity (e.g., Just now, 2m ago, 1h ago).
         </p>
       </details>
       <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">

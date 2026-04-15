@@ -43,6 +43,8 @@
 - Stacking support with up to 3 visible notifications
 - Smooth animated transitions
 - Claude Code hook integration for automation
+- **File changes badge** - Shows git modified files count on each session floater
+- **Activity timestamp** - Displays relative time since last session activity (Just now / 2m ago / 1h ago)
 
 ## Why Floatify
 
@@ -53,6 +55,7 @@
 | Blazing fast | FIFO pipe IPC achieves sub-millisecond latency |
 | Clean integration | Works seamlessly with Claude Code hooks |
 | Lightweight | No network permissions, minimal resource usage |
+| Context-aware | Git changes count and activity timestamps keep you informed |
 
 ---
 
