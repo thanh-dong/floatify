@@ -15,7 +15,7 @@ enum FloaterSize {
 
     var spriteSize: CGFloat {
         switch self {
-        case .compact: return 38
+        case .compact: return 32
         case .regular: return 44
         case .large: return 52
         }
@@ -47,7 +47,7 @@ enum FloaterSize {
 
     var verticalPadding: CGFloat {
         switch self {
-        case .compact: return 4
+        case .compact: return 0
         case .regular: return 8
         case .large: return 10
         }
@@ -63,7 +63,7 @@ enum FloaterSize {
 
     var stageSize: CGFloat {
         switch self {
-        case .compact: return 48
+        case .compact: return 40
         case .regular: return 56
         case .large: return 64
         }
