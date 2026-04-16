@@ -24,7 +24,7 @@ struct GlowPulseModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .shadow(color: .yellow.opacity(isEnabled ? 0.7 : 0), radius: 8, x: 0, y: 0)
+            .shadow(color: FloaterPalette.idle.opacity(isEnabled ? 0.55 : 0), radius: 8, x: 0, y: 0)
             .animation(
                 isEnabled
                     ? .easeInOut(duration: 3.0).repeatForever(autoreverses: true)

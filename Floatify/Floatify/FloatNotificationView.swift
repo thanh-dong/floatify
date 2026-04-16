@@ -1,73 +1,89 @@
 import AppKit
 import SwiftUI
 
+enum FloaterPalette {
+    static let panelTint = Color(red: 0.075, green: 0.082, blue: 0.118)
+    static let panelShadow = Color(red: 0.020, green: 0.024, blue: 0.040)
+    static let primaryText = Color(red: 0.955, green: 0.970, blue: 1.000)
+    static let secondaryText = Color(red: 0.645, green: 0.705, blue: 0.815)
+    static let strokeStrong = Color(red: 0.720, green: 0.790, blue: 0.930)
+    static let strokeSoft = Color(red: 0.280, green: 0.330, blue: 0.430)
+    static let highlight = Color(red: 0.980, green: 0.990, blue: 1.000)
+    static let running = Color(red: 0.965, green: 0.470, blue: 0.410)
+    static let idle = Color(red: 0.915, green: 0.705, blue: 0.320)
+    static let complete = Color(red: 0.330, green: 0.845, blue: 0.645)
+    static let warning = Color(red: 0.948, green: 0.598, blue: 0.360)
+    static let chipFill = Color(red: 0.145, green: 0.165, blue: 0.230)
+    static let closeHover = Color(red: 0.240, green: 0.280, blue: 0.390)
+}
+
 // MARK: - FloaterSize
 
-enum FloaterSize {
+enum FloaterSize: Equatable {
     case compact
     case regular
     case large
 
     var rowHeight: CGFloat {
         switch self {
-        case .compact: return 38
-        case .regular: return 46
-        case .large: return 60
+        case .compact: return 32
+        case .regular: return 38
+        case .large: return 56
         }
     }
 
     var spriteSize: CGFloat {
         switch self {
-        case .compact: return 26
-        case .regular: return 32
-        case .large: return 40
+        case .compact: return 18
+        case .regular: return 24
+        case .large: return 36
         }
     }
 
     var stageSize: CGFloat {
         switch self {
-        case .compact: return 30
-        case .regular: return 38
-        case .large: return 48
+        case .compact: return 24
+        case .regular: return 30
+        case .large: return 44
         }
     }
 
     var dotSize: CGFloat {
         switch self {
-        case .compact: return 6
-        case .regular: return 7
+        case .compact: return 5
+        case .regular: return 6
         case .large: return 9
         }
     }
 
     var cornerRadius: CGFloat {
         switch self {
-        case .compact: return 10
-        case .regular: return 12
+        case .compact: return 9
+        case .regular: return 10
         case .large: return 14
         }
     }
 
     var horizontalPadding: CGFloat {
         switch self {
-        case .compact: return 8
-        case .regular: return 10
+        case .compact: return 7
+        case .regular: return 8
         case .large: return 12
         }
     }
 
     var projectFontSize: CGFloat {
         switch self {
-        case .compact: return 12
-        case .regular: return 13
+        case .compact: return 11.5
+        case .regular: return 12.5
         case .large: return 14.5
         }
     }
 
     var metaFontSize: CGFloat {
         switch self {
-        case .compact: return 9.5
-        case .regular: return 10.5
+        case .compact: return 9
+        case .regular: return 9.5
         case .large: return 11.5
         }
     }
@@ -81,9 +97,54 @@ enum FloaterSize {
 
     var panelWidth: CGFloat {
         switch self {
-        case .compact: return 270
-        case .regular: return 330
-        case .large: return 380
+        case .compact: return 176
+        case .regular: return 222
+        case .large: return 340
+        }
+    }
+
+    var contentSpacing: CGFloat {
+        switch self {
+        case .compact: return 6
+        case .regular: return 7
+        case .large: return 8
+        }
+    }
+
+    var statusRailWidth: CGFloat {
+        switch self {
+        case .compact: return 4
+        case .regular: return 5
+        case .large: return 6
+        }
+    }
+
+    var closeButtonSize: CGFloat {
+        switch self {
+        case .compact: return 12
+        case .regular: return 13
+        case .large: return 14
+        }
+
+    }
+
+    var trailingInset: CGFloat {
+        horizontalPadding + statusRailWidth + 6
+    }
+
+    var hoverTrailingInset: CGFloat {
+        trailingInset + closeButtonSize + 6
+    }
+
+    var avatarHitSize: CGFloat {
+        max(stageSize + 6, rowHeight - 4)
+    }
+
+    var cardShadowRadius: CGFloat {
+        switch self {
+        case .compact: return 9
+        case .regular: return 11
+        case .large: return 14
         }
     }
 }
@@ -404,7 +465,6 @@ private struct SpriteStageView: View {
 private struct StatusPill: View {
     let color: Color
     let label: String
-    let emoji: String?
     let dotSize: CGFloat
     let fontSize: CGFloat
     let isPulsing: Bool
@@ -415,24 +475,19 @@ private struct StatusPill: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            if let emoji {
-                Text(emoji)
-                    .font(.system(size: fontSize + 1))
-            } else {
-                ZStack {
-                    if isPulsing {
-                        Circle()
-                            .fill(color.opacity(0.45))
-                            .frame(width: dotSize * pulseScale * 2.0, height: dotSize * pulseScale * 2.0)
-                            .opacity(pulseOpacity)
-                    }
+            ZStack {
+                if isPulsing {
                     Circle()
-                        .fill(color)
-                        .frame(width: dotSize, height: dotSize)
-                        .shadow(color: color.opacity(0.6), radius: isPulsing ? 3 : 1.5, x: 0, y: 0)
+                        .fill(color.opacity(0.45))
+                        .frame(width: dotSize * pulseScale * 2.0, height: dotSize * pulseScale * 2.0)
+                        .opacity(pulseOpacity)
                 }
-                .frame(width: dotSize + 4, height: dotSize + 4)
+                Circle()
+                    .fill(color)
+                    .frame(width: dotSize, height: dotSize)
+                    .shadow(color: color.opacity(0.6), radius: isPulsing ? 3 : 1.5, x: 0, y: 0)
             }
+            .frame(width: dotSize + 4, height: dotSize + 4)
 
             Text(label)
                 .font(.system(size: fontSize, weight: .semibold))
@@ -446,15 +501,15 @@ private struct StatusPill: View {
                     .padding(.leading, 2)
             }
         }
-        .padding(.leading, 6)
-        .padding(.trailing, 8)
-        .padding(.vertical, 2.5)
+        .padding(.leading, 5)
+        .padding(.trailing, 7)
+        .padding(.vertical, 2)
         .fixedSize()
         .background(
-            Capsule().fill(color.opacity(0.14))
+            Capsule().fill(color.opacity(0.12))
         )
         .overlay(
-            Capsule().strokeBorder(color.opacity(0.28), lineWidth: 0.5)
+            Capsule().strokeBorder(color.opacity(0.24), lineWidth: 0.5)
         )
         .onAppear {
             guard isPulsing else { return }
@@ -538,70 +593,74 @@ private struct FloaterPanelHeaderView: View {
             ZStack {
                 WindowDragRegion()
 
-                HStack(spacing: 8) {
-                    VStack(spacing: 2.5) {
+                HStack(spacing: 7) {
+                    VStack(spacing: 2) {
                         ForEach(0..<3, id: \.self) { _ in
-                            HStack(spacing: 2.5) {
-                                Circle().fill(.white.opacity(0.22)).frame(width: 3, height: 3)
-                                Circle().fill(.white.opacity(0.22)).frame(width: 3, height: 3)
+                            HStack(spacing: 2) {
+                                Circle().fill(.white.opacity(0.22)).frame(width: 2.5, height: 2.5)
+                                Circle().fill(.white.opacity(0.22)).frame(width: 2.5, height: 2.5)
                             }
                         }
                     }
 
                     Text("Floaters")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 11.5, weight: .semibold))
                         .tracking(-0.1)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(FloaterPalette.primaryText)
 
                     Text("\(itemCount)")
-                        .font(.system(size: 10.5, weight: .bold))
+                        .font(.system(size: 10, weight: .bold))
                         .monospacedDigit()
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(FloaterPalette.secondaryText)
                         .padding(.horizontal, 6)
-                        .padding(.vertical, 1.5)
-                        .background(Capsule().fill(.white.opacity(0.12)))
+                        .padding(.vertical, 1)
+                        .background(Capsule().fill(FloaterPalette.chipFill.opacity(0.85)))
 
                     Spacer(minLength: 0)
                 }
-                .padding(.leading, 10)
-                .padding(.trailing, 4)
-                .padding(.vertical, 7)
+                .padding(.leading, 8)
+                .padding(.trailing, 3)
+                .padding(.vertical, 5)
                 .allowsHitTesting(false)
             }
 
             Capsule()
-                .fill(.white.opacity(0.10))
-                .frame(width: 1, height: 16)
+                .fill(FloaterPalette.strokeSoft.opacity(0.55))
+                .frame(width: 1, height: 14)
 
             Button(action: onToggleCollapsed) {
                 Image(systemName: "chevron.up")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(isHoveringCollapse ? .primary : .secondary)
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(isHoveringCollapse ? FloaterPalette.primaryText : FloaterPalette.secondaryText)
                     .rotationEffect(.degrees(isCollapsed ? 180 : 0))
                     .animation(animation, value: isCollapsed)
-                    .frame(width: 30, height: 28)
+                    .frame(width: 26, height: 24)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .onHover { isHoveringCollapse = $0 }
         }
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 9)
                 .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9)
+                        .fill(FloaterPalette.panelTint.opacity(0.68))
+                )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 9)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [.white.opacity(0.18), .white.opacity(0.06)],
+                        colors: [FloaterPalette.strokeStrong.opacity(0.24), FloaterPalette.strokeSoft.opacity(0.32)],
                         startPoint: .top,
                         endPoint: .bottom
                     ),
                     lineWidth: 1
                 )
         )
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .shadow(color: .black.opacity(0.16), radius: 12, x: 0, y: 5)
+        .clipShape(RoundedRectangle(cornerRadius: 9))
+        .shadow(color: FloaterPalette.panelShadow.opacity(0.35), radius: 10, x: 0, y: 4)
     }
 }
 
@@ -666,7 +725,7 @@ struct FloaterPanelView: View {
                 )
             }
         }
-        .padding(7)
+        .padding(6)
         .fixedSize()
         .background(.clear)
         .animation(animation, value: isCollapsed)
@@ -764,18 +823,9 @@ struct FloatNotificationView: View {
     private var stateLabel: String? {
         guard let state = statusState else { return nil }
         switch state {
-        case .running: return "Cooking"
-        case .idle: return "Chillin"
-        case .complete: return "Done!"
-        }
-    }
-
-    private var stateEmoji: String? {
-        guard let state = statusState else { return nil }
-        switch state {
-        case .running: return "\u{1F468}\u{200D}\u{1F373}"  // 👨‍🍳
-        case .idle: return "\u{1F634}"                      // 😴
-        case .complete: return "\u{1F389}"                  // 🎉
+        case .running: return "Running"
+        case .idle: return "Idle"
+        case .complete: return "Done"
         }
     }
 
@@ -791,23 +841,35 @@ struct FloatNotificationView: View {
         return "\(Int(interval) / 3600)h"
     }
 
-    private var displayName: String {
-        let name = project ?? "Claude Code"
-        let maxLength = isCompact ? 14 : 18
-        if name.count > maxLength {
-            return String(name.prefix(maxLength)) + "..."
-        }
-        return name
+    private var projectName: String {
+        project ?? "Claude Code"
     }
 
     private var isPersistent: Bool {
         isDraggablePanel && statusIndicatorColor != nil
     }
 
+    private var showsMetaInline: Bool {
+        guard isPersistent else { return false }
+        if floaterSize == .large { return true }
+        if isHovering { return true }
+        return isRunning || modifiedFilesCount > 0
+    }
+
+    private var showsStatusPill: Bool {
+        guard isPersistent, stateLabel != nil else { return false }
+        if floaterSize == .large { return true }
+        return isHovering
+    }
+
+    private var trailingContentInset: CGFloat {
+        isHovering ? floaterSize.hoverTrailingInset : floaterSize.trailingInset
+    }
+
     var body: some View {
         ZStack {
             if corner == .cursorFollow {
-                ParticleTrailView(system: particleSystem, color: .yellow)
+                ParticleTrailView(system: particleSystem, color: FloaterPalette.idle)
                     .frame(width: 300, height: 100)
             }
 
@@ -826,8 +888,8 @@ struct FloatNotificationView: View {
                 .strokeBorder(
                     LinearGradient(
                         colors: [
-                            .white.opacity(isHovering ? 0.32 : 0.20),
-                            .white.opacity(isHovering ? 0.12 : 0.06)
+                            FloaterPalette.strokeStrong.opacity(isHovering ? 0.28 : 0.16),
+                            FloaterPalette.strokeSoft.opacity(isHovering ? 0.38 : 0.24)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -835,8 +897,23 @@ struct FloatNotificationView: View {
                     lineWidth: 1
                 )
         )
-        .shadow(color: .black.opacity(isHovering ? 0.26 : 0.18), radius: isHovering ? 18 : 12, x: 0, y: isHovering ? 10 : 5)
-        .shadow(color: accentColor.opacity(isRunning ? 0.22 : 0), radius: 14, x: 0, y: 4)
+        .overlay(alignment: .trailing) {
+            if isPersistent {
+                statusRail
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if isPersistent, onClose != nil {
+                closeButton
+                    .padding(.top, 5)
+                    .padding(.trailing, 5)
+                    .opacity(isHovering ? 1 : 0)
+                    .scaleEffect(isHovering ? 1 : 0.92)
+                    .animation(.easeInOut(duration: 0.15), value: isHovering)
+            }
+        }
+        .shadow(color: FloaterPalette.panelShadow.opacity(isHovering ? 0.42 : 0.28), radius: isHovering ? floaterSize.cardShadowRadius + 4 : floaterSize.cardShadowRadius, x: 0, y: isHovering ? 8 : 4)
+        .shadow(color: accentColor.opacity(isRunning ? 0.14 : 0.05), radius: isHovering ? 12 : 9, x: 0, y: 3)
         .animation(.easeInOut(duration: 0.18), value: isHovering)
         .animation(.easeInOut(duration: 0.22), value: accentColor)
         .scaleEffect(panelScale)
@@ -863,30 +940,45 @@ struct FloatNotificationView: View {
         ZStack {
             RoundedRectangle(cornerRadius: floaterSize.cornerRadius)
                 .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: floaterSize.cornerRadius)
+                        .fill(FloaterPalette.panelTint.opacity(isHovering ? 0.72 : 0.62))
+                )
 
             if isPersistent {
-                // Status-tinted radial wash from the avatar side (quieter)
                 RoundedRectangle(cornerRadius: floaterSize.cornerRadius)
                     .fill(
                         RadialGradient(
                             colors: [
-                                accentColor.opacity(isRunning ? 0.10 : 0.04),
-                                accentColor.opacity(isRunning ? 0.04 : 0.02),
+                                accentColor.opacity(isRunning ? 0.08 : 0.035),
+                                accentColor.opacity(isRunning ? 0.025 : 0.01),
                                 .clear
                             ],
                             center: .leading,
                             startRadius: 0,
-                            endRadius: floaterSize.panelWidth * 0.55
+                            endRadius: floaterSize.panelWidth * 0.48
                         )
                     )
             }
+
+            RoundedRectangle(cornerRadius: floaterSize.cornerRadius)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            accentColor.opacity(isRunning ? 0.045 : 0.025),
+                            .clear
+                        ],
+                        startPoint: .trailing,
+                        endPoint: .leading
+                    )
+                )
 
             // Top-edge sheen
             RoundedRectangle(cornerRadius: floaterSize.cornerRadius)
                 .fill(
                     LinearGradient(
                         colors: [
-                            .white.opacity(0.10),
+                            FloaterPalette.highlight.opacity(0.10),
                             .clear
                         ],
                         startPoint: .top,
@@ -898,7 +990,7 @@ struct FloatNotificationView: View {
 
     @ViewBuilder
     private var persistentContent: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: floaterSize.contentSpacing) {
             Button(action: {
                 NSLog("Floatify: Avatar tapped, invoking onTap")
                 onTap?()
@@ -907,6 +999,7 @@ struct FloatNotificationView: View {
             }
             .buttonStyle(.plain)
             .contentShape(Circle())
+            .frame(width: floaterSize.avatarHitSize, height: floaterSize.avatarHitSize)
             .scaleEffect(isAvatarHovering ? 1.08 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isAvatarHovering)
             .onHover { isAvatarHovering = $0 }
@@ -918,59 +1011,59 @@ struct FloatNotificationView: View {
                 twoLineBody
             }
 
-            if let stateLabel {
+            Spacer(minLength: 0)
+
+            if showsStatusPill, let stateLabel {
                 StatusPill(
                     color: accentColor,
                     label: stateLabel,
-                    emoji: stateEmoji,
                     dotSize: floaterSize.dotSize,
                     fontSize: floaterSize.metaFontSize,
                     isPulsing: isRunning && animatesStatus,
                     showsTypingDots: isRunning && animatesStatus
                 )
+                .transition(.move(edge: .trailing).combined(with: .opacity))
             }
-
-            closeButton
-                .opacity(isHovering ? 1 : 0)
-                .animation(.easeInOut(duration: 0.15), value: isHovering)
-                .frame(width: 16, alignment: .trailing)
         }
         .padding(.leading, floaterSize.horizontalPadding - 2)
-        .padding(.trailing, floaterSize.horizontalPadding)
+        .padding(.trailing, trailingContentInset)
     }
 
     @ViewBuilder
     private var singleLineBody: some View {
         HStack(spacing: 6) {
-            Text(displayName)
+            Text(projectName)
                 .font(.system(size: floaterSize.projectFontSize, weight: .semibold))
                 .tracking(-0.2)
-                .foregroundStyle(.primary)
+                .foregroundStyle(FloaterPalette.primaryText)
                 .lineLimit(1)
                 .truncationMode(.tail)
                 .layoutPriority(1)
+                .help(projectName)
 
-            metaInline
-                .layoutPriority(0)
-
-            Spacer(minLength: 4)
+            if showsMetaInline {
+                metaInline
+                    .transition(.opacity)
+                    .layoutPriority(0)
+            }
         }
     }
 
     @ViewBuilder
     private var twoLineBody: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(displayName)
+            Text(projectName)
                 .font(.system(size: floaterSize.projectFontSize, weight: .semibold))
                 .tracking(-0.2)
-                .foregroundStyle(.primary)
+                .foregroundStyle(FloaterPalette.primaryText)
                 .lineLimit(1)
                 .truncationMode(.tail)
+                .help(projectName)
 
-            metaInline
+            if showsMetaInline {
+                metaInline
+            }
         }
-
-        Spacer(minLength: 4)
     }
 
     @ViewBuilder
@@ -980,14 +1073,14 @@ struct FloatNotificationView: View {
                 Text(timeAgoText)
                     .font(.system(size: floaterSize.metaFontSize, weight: .medium))
                     .monospacedDigit()
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(FloaterPalette.secondaryText)
                     .lineLimit(1)
                     .fixedSize()
             }
 
             if timeAgoText != nil && modifiedFilesCount > 0 {
                 Circle()
-                    .fill(.secondary.opacity(0.5))
+                    .fill(FloaterPalette.secondaryText.opacity(0.45))
                     .frame(width: 2, height: 2)
             }
 
@@ -999,7 +1092,7 @@ struct FloatNotificationView: View {
                         .font(.system(size: floaterSize.metaFontSize, weight: .semibold))
                         .monospacedDigit()
                 }
-                .foregroundStyle(.orange)
+                .foregroundStyle(FloaterPalette.warning)
                 .fixedSize()
             }
         }
@@ -1017,6 +1110,27 @@ struct FloatNotificationView: View {
             isComplete: statusState == .complete,
             completeTrigger: completeTrigger
         )
+    }
+
+    private var statusRail: some View {
+        ZStack(alignment: .trailing) {
+            Capsule()
+                .fill(accentColor.opacity(isRunning ? 0.16 : 0.08))
+                .frame(width: floaterSize.statusRailWidth + 3)
+                .blur(radius: isRunning ? 3 : 2)
+
+            Capsule()
+                .fill(accentColor.opacity(isRunning ? 0.96 : 0.78))
+                .frame(width: floaterSize.statusRailWidth)
+                .overlay(
+                    Capsule()
+                        .fill(.white.opacity(isRunning ? 0.28 : 0.12))
+                        .frame(width: 1),
+                    alignment: .leading
+                )
+        }
+        .padding(.vertical, 5)
+        .padding(.trailing, 4)
     }
 
     @ViewBuilder
@@ -1041,7 +1155,7 @@ struct FloatNotificationView: View {
             Text(message)
                 .font(.system(size: floaterSize.projectFontSize + 0.5, weight: .medium))
                 .tracking(-0.1)
-                .foregroundStyle(.primary)
+                .foregroundStyle(FloaterPalette.primaryText)
                 .lineLimit(2)
 
             Spacer(minLength: 4)
@@ -1050,11 +1164,11 @@ struct FloatNotificationView: View {
                 Text(project)
                     .font(.system(size: floaterSize.metaFontSize, weight: .semibold))
                     .tracking(-0.1)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(FloaterPalette.secondaryText)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2.5)
-                    .background(Capsule().fill(.white.opacity(0.12)))
-                    .overlay(Capsule().strokeBorder(.white.opacity(0.10), lineWidth: 0.5))
+                    .background(Capsule().fill(FloaterPalette.chipFill.opacity(0.88)))
+                    .overlay(Capsule().strokeBorder(FloaterPalette.strokeSoft.opacity(0.42), lineWidth: 0.5))
             }
         }
         .padding(.horizontal, floaterSize.horizontalPadding)
@@ -1064,11 +1178,11 @@ struct FloatNotificationView: View {
         Button(action: { onClose?() }) {
             Image(systemName: "xmark")
                 .font(.system(size: 7, weight: .bold))
-                .foregroundStyle(isCloseHovering ? .primary : .secondary)
-                .frame(width: 14, height: 14)
+                .foregroundStyle(isCloseHovering ? FloaterPalette.primaryText : FloaterPalette.secondaryText)
+                .frame(width: floaterSize.closeButtonSize, height: floaterSize.closeButtonSize)
                 .background(
                     Circle()
-                        .fill(isCloseHovering ? .white.opacity(0.20) : .white.opacity(0.06))
+                        .fill(isCloseHovering ? FloaterPalette.closeHover.opacity(0.92) : FloaterPalette.chipFill.opacity(0.46))
                 )
         }
         .buttonStyle(.plain)

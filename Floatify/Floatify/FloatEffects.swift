@@ -212,7 +212,7 @@ struct ShimmerModifier: ViewModifier {
 // MARK: - View Extensions
 
 extension View {
-    func glow(color: Color = .yellow, radius: CGFloat = 10) -> some View {
+    func glow(color: Color = FloaterPalette.idle, radius: CGFloat = 10) -> some View {
         modifier(GlowModifier(color: color, radius: radius))
     }
 

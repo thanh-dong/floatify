@@ -34,11 +34,11 @@ enum ClaudeStatusState: Equatable {
     var indicatorColor: Color {
         switch self {
         case .running:
-            return .red
+            return FloaterPalette.running
         case .idle:
-            return .yellow
+            return FloaterPalette.idle
         case .complete:
-            return .green
+            return FloaterPalette.complete
         }
     }
 }
@@ -84,7 +84,7 @@ class FloatNotificationManager {
     private let maxPanels = 8
     private let maxHorizontalPanels = 5
     private let horizontalStackOffset: CGFloat = 8
-    private let floaterPanelSpacing: CGFloat = 10
+    private let floaterPanelSpacing: CGFloat = 6
     private let floaterPanelOriginKey = "FloaterPanelOrigin"
     private let floaterPanelCollapsedKey = "FloaterPanelCollapsed"
     private let floaterPanelAnimationDuration: TimeInterval = 0.38
