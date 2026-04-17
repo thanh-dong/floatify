@@ -93,10 +93,9 @@ Floatify/
 
 `status` accepts `running`, `complete`, `done`, or `idle`.
 
-Status flow:
-- `running` (red) stays until manually changed
-- When `complete` is sent: shows `idle` (yellow) for idle timeout duration, then auto-transitions to `complete` (green)
-- `idle` can be sent manually to force yellow state without timer
+Status flow with auto-transition:
+- `running` (red) -> `idle` (yellow) after 15s -> `complete` (green)
+- Send `idle` explicitly or let `running` sessions auto-transition via the 15s timer
 
 ## Configuration for Claude Code
 
@@ -136,6 +135,10 @@ Do not use `UserPromptSubmit` for `floatify --status running`. That hook can int
 - No redundant context. Do not repeat information already established in the session.
 - No long intros or transitions between sections.
 - Short responses are correct unless depth is explicitly requested.
+
+## Language Response
+- If the user asks in Vietnamese, respond in Vietnamese with proper Vietnamese diacritics.
+- This overrides the ASCII-only rule for normal Vietnamese response text.
 
 ## Typography - ASCII Only
 - No em dashes (-) - use hyphens (-)
@@ -192,7 +195,7 @@ User instructions always override this file.
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **floatify** (415 symbols, 562 relationships, 0 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **floatify** (417 symbols, 564 relationships, 0 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

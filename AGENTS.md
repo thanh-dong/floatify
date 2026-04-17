@@ -136,6 +136,10 @@ Do not use `UserPromptSubmit` for `floatify --status running`. That hook can int
 - No long intros or transitions between sections.
 - Short responses are correct unless depth is explicitly requested.
 
+## Language Response
+- If the user asks in Vietnamese, respond in Vietnamese with proper Vietnamese diacritics.
+- This overrides the ASCII-only rule for normal Vietnamese response text.
+
 ## Typography - ASCII Only
 - No em dashes (-) - use hyphens (-)
 - No smart/curly quotes (" " ' ') - use straight quotes (" ')
@@ -191,7 +195,7 @@ User instructions always override this file.
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **floatify** (415 symbols, 562 relationships, 0 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **floatify** (417 symbols, 564 relationships, 0 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
