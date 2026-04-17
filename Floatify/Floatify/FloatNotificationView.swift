@@ -89,6 +89,7 @@ enum FloaterSize: Equatable {
     case regular
     case large
     case larger
+    case superLarge
 
     var rowHeight: CGFloat {
         switch self {
@@ -96,6 +97,7 @@ enum FloaterSize: Equatable {
         case .regular: return 44
         case .large: return 56
         case .larger: return 68
+        case .superLarge: return 80
         }
     }
 
@@ -105,6 +107,7 @@ enum FloaterSize: Equatable {
         case .regular: return 24
         case .large: return 36
         case .larger: return 44
+        case .superLarge: return 52
         }
     }
 
@@ -114,6 +117,7 @@ enum FloaterSize: Equatable {
         case .regular: return 30
         case .large: return 44
         case .larger: return 52
+        case .superLarge: return 60
         }
     }
 
@@ -123,6 +127,7 @@ enum FloaterSize: Equatable {
         case .regular: return 6
         case .large: return 9
         case .larger: return 10
+        case .superLarge: return 12
         }
     }
 
@@ -132,6 +137,7 @@ enum FloaterSize: Equatable {
         case .regular: return 10
         case .large: return 14
         case .larger: return 16
+        case .superLarge: return 18
         }
     }
 
@@ -141,6 +147,7 @@ enum FloaterSize: Equatable {
         case .regular: return 8
         case .large: return 12
         case .larger: return 14
+        case .superLarge: return 16
         }
     }
 
@@ -150,6 +157,7 @@ enum FloaterSize: Equatable {
         case .regular: return 12.5
         case .large: return 14.5
         case .larger: return 16
+        case .superLarge: return 18
         }
     }
 
@@ -159,12 +167,13 @@ enum FloaterSize: Equatable {
         case .regular: return 9.5
         case .large: return 11.5
         case .larger: return 12.5
+        case .superLarge: return 14
         }
     }
 
     var isSingleLine: Bool {
         switch self {
-        case .compact, .regular, .large, .larger: return false
+        case .compact, .regular, .large, .larger, .superLarge: return false
         }
     }
 
@@ -174,6 +183,7 @@ enum FloaterSize: Equatable {
         case .regular: return 262
         case .large: return 352
         case .larger: return 420
+        case .superLarge: return 492
         }
     }
 
@@ -183,6 +193,7 @@ enum FloaterSize: Equatable {
         case .regular: return 236
         case .large: return 304
         case .larger: return 356
+        case .superLarge: return 416
         }
     }
 
@@ -192,6 +203,7 @@ enum FloaterSize: Equatable {
         case .regular: return 7
         case .large: return 8
         case .larger: return 10
+        case .superLarge: return 11
         }
     }
 
@@ -201,6 +213,7 @@ enum FloaterSize: Equatable {
         case .regular: return 5
         case .large: return 6
         case .larger: return 7
+        case .superLarge: return 8
         }
     }
 
@@ -210,6 +223,7 @@ enum FloaterSize: Equatable {
         case .regular: return 13
         case .large: return 14
         case .larger: return 15
+        case .superLarge: return 16
         }
 
     }
@@ -240,6 +254,7 @@ enum FloaterSize: Equatable {
         case .regular: return 11
         case .large: return 14
         case .larger: return 16
+        case .superLarge: return 18
         }
     }
 
@@ -249,6 +264,7 @@ enum FloaterSize: Equatable {
         case .regular: return 58
         case .large: return 66
         case .larger: return 78
+        case .superLarge: return 90
         }
     }
 
@@ -258,6 +274,7 @@ enum FloaterSize: Equatable {
         case .regular: return 2
         case .large: return 3
         case .larger: return 4
+        case .superLarge: return 5
         }
     }
 }

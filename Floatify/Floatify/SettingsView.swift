@@ -27,6 +27,7 @@ struct SettingsView: View {
                     Text("Regular").tag("regular")
                     Text("Large").tag("large")
                     Text("Larger").tag("larger")
+                    Text("Super Large").tag("superLarge")
                 }
                 .pickerStyle(.inline)
             } header: {

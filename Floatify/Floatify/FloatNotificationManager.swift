@@ -347,6 +347,7 @@ class FloatNotificationManager {
         case "compact": return .compact
         case "large": return .large
         case "larger": return .larger
+        case "superLarge": return .superLarge
         default: return .regular
         }
     }
