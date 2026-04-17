@@ -170,13 +170,28 @@ final class ClaudeSessionMonitor {
 final class CodexActivityMonitor {
     var onSessionsChange: (([SessionDescriptor]) -> Void)?
 
+    private struct ActivityState {
+        let isRunning: Bool
+        let lastActivity: Date
+    }
+
     private let queue = DispatchQueue(label: "com.floatify.codex-activity")
     private var timer: DispatchSourceTimer?
     private var lastPublished: [SessionDescriptor] = []
-    private var lastDetectedActivityAtBySessionID: [String: Date] = [:]
     private var projectCache: [Int: ProjectContext] = [:]
+    private var sessionLogPathCache: [Int: String] = [:]
     private var modifiedFilesCache: [Int: Int] = [:]
-    private let activeHoldDuration: TimeInterval = 8
+    private let sessionTailByteCount = 32 * 1024
+    private let timestampFormatterWithFractionalSeconds: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+    private let timestampFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
 
     func start() {
         stop()
@@ -207,23 +222,22 @@ final class CodexActivityMonitor {
     }
 
     private func detectCodexSessions() -> [SessionDescriptor] {
-        guard let output = commandOutput(executablePath: "/bin/ps", arguments: ["-Aww", "-o", "pid=,ppid=,pcpu=,command="]) else {
+        guard let output = commandOutput(executablePath: "/bin/ps", arguments: ["-Aww", "-o", "pid=,ppid=,command="]) else {
             return []
         }
 
         var activeNodePIDs = Set<Int>()
-        var vendorCPUByNodePID: [Int: Double] = [:]
+        var vendorPIDByNodePID: [Int: Int] = [:]
 
         for rawLine in output.split(separator: "\n") {
-            let parts = rawLine.split(maxSplits: 3, omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
-            guard parts.count == 4,
+            let parts = rawLine.split(maxSplits: 2, omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
+            guard parts.count == 3,
                   let pid = Int(parts[0]),
-                  let ppid = Int(parts[1]),
-                  let cpu = Double(parts[2]) else {
+                  let ppid = Int(parts[1]) else {
                 continue
             }
 
-            let command = String(parts[3])
+            let command = String(parts[2])
 
             if command.contains("node /opt/homebrew/bin/codex") {
                 activeNodePIDs.insert(pid)
@@ -235,43 +249,139 @@ final class CodexActivityMonitor {
             }
 
             activeNodePIDs.insert(ppid)
-            vendorCPUByNodePID[ppid] = max(vendorCPUByNodePID[ppid] ?? 0, cpu)
+            vendorPIDByNodePID[ppid] = pid
         }
 
-        let activeSessionIDs = Set(activeNodePIDs.map { "codex:\($0)" })
-        lastDetectedActivityAtBySessionID = lastDetectedActivityAtBySessionID.filter { activeSessionIDs.contains($0.key) }
         projectCache = projectCache.filter { activeNodePIDs.contains($0.key) }
+        sessionLogPathCache = sessionLogPathCache.filter { activeNodePIDs.contains($0.key) }
         modifiedFilesCache = modifiedFilesCache.filter { activeNodePIDs.contains($0.key) }
 
         let now = Date()
         return activeNodePIDs.sorted().map { nodePID in
             let id = "codex:\(nodePID)"
-            let cpu = vendorCPUByNodePID[nodePID] ?? 0
-            if cpu >= 0.7 {
-                lastDetectedActivityAtBySessionID[id] = now
-            }
-
-            let isRunning = lastDetectedActivityAtBySessionID[id].map {
-                now.timeIntervalSince($0) < activeHoldDuration
-            } ?? false
             let projectContext = cachedProjectContext(for: nodePID, fallbackProject: "Codex")
+            let activityState = cachedActivityState(for: nodePID, vendorPID: vendorPIDByNodePID[nodePID], fallbackDate: now)
 
             // Count modified files in git repo
             let modifiedCount = countModifiedFiles(for: projectContext.path)
             modifiedFilesCache[nodePID] = modifiedCount
 
-            // Use last activity timestamp (from CPU detection or now)
-            let lastActivity = lastDetectedActivityAtBySessionID[id] ?? now
-
             return SessionDescriptor(
                 id: id,
                 project: projectContext.name,
                 projectPath: projectContext.path,
-                isRunning: isRunning,
-                lastActivity: lastActivity,
+                isRunning: activityState.isRunning,
+                lastActivity: activityState.lastActivity,
                 modifiedFilesCount: modifiedCount
             )
         }
+    }
+
+    private func cachedActivityState(for nodePID: Int, vendorPID: Int?, fallbackDate: Date) -> ActivityState {
+        let sessionLogPath = cachedSessionLogPath(for: nodePID, vendorPID: vendorPID)
+        return readActivityState(from: sessionLogPath, fallbackDate: fallbackDate)
+    }
+
+    private func cachedSessionLogPath(for nodePID: Int, vendorPID: Int?) -> String? {
+        if let cached = sessionLogPathCache[nodePID],
+           FileManager.default.fileExists(atPath: cached) {
+            return cached
+        }
+
+        guard let vendorPID else { return nil }
+        let sessionLogPath = lookupSessionLogPath(for: vendorPID)
+        if let sessionLogPath {
+            sessionLogPathCache[nodePID] = sessionLogPath
+        }
+        return sessionLogPath
+    }
+
+    private func lookupSessionLogPath(for pid: Int) -> String? {
+        guard let output = commandOutput(executablePath: "/usr/sbin/lsof", arguments: ["-p", "\(pid)"]) else {
+            return nil
+        }
+
+        let sessionRoot = "\(NSHomeDirectory())/.codex/sessions/"
+        for rawLine in output.split(separator: "\n").dropFirst() {
+            let parts = rawLine.split(maxSplits: 8, omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
+            guard let pathField = parts.last else { continue }
+            let path = String(pathField)
+            guard path.hasPrefix(sessionRoot), path.hasSuffix(".jsonl") else {
+                continue
+            }
+            return path
+        }
+
+        return nil
+    }
+
+    private func readActivityState(from sessionLogPath: String?, fallbackDate: Date) -> ActivityState {
+        guard let sessionLogPath else {
+            return ActivityState(isRunning: false, lastActivity: fallbackDate)
+        }
+
+        guard let fileHandle = FileHandle(forReadingAtPath: sessionLogPath) else {
+            return ActivityState(isRunning: false, lastActivity: fallbackDate)
+        }
+        defer {
+            fileHandle.closeFile()
+        }
+
+        let fileSize = (try? fileHandle.seekToEnd()) ?? 0
+        let readSize = min(UInt64(sessionTailByteCount), fileSize)
+        if readSize == 0 {
+            return ActivityState(isRunning: false, lastActivity: fallbackDate)
+        }
+
+        try? fileHandle.seek(toOffset: fileSize - readSize)
+        let data = fileHandle.readDataToEndOfFile()
+        guard var contents = String(data: data, encoding: .utf8) else {
+            return ActivityState(isRunning: false, lastActivity: fallbackDate)
+        }
+
+        if readSize < fileSize, let firstNewline = contents.firstIndex(of: "\n") {
+            contents = String(contents[contents.index(after: firstNewline)...])
+        }
+
+        var fallbackActivityAt: Date?
+        for rawLine in contents.split(separator: "\n").reversed() {
+            guard let lineData = rawLine.data(using: .utf8),
+                  let json = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any],
+                  let timestampRaw = json["timestamp"] as? String,
+                  let timestamp = parsedTimestamp(from: timestampRaw),
+                  let type = json["type"] as? String,
+                  type == "event_msg",
+                  let payload = json["payload"] as? [String: Any],
+                  let eventType = payload["type"] as? String else {
+                continue
+            }
+
+            if fallbackActivityAt == nil,
+               eventType == "user_message" || eventType == "agent_message" {
+                fallbackActivityAt = timestamp
+            }
+
+            if eventType == "task_complete" {
+                return ActivityState(isRunning: false, lastActivity: timestamp)
+            }
+
+            if eventType == "task_started" {
+                return ActivityState(isRunning: true, lastActivity: timestamp)
+            }
+        }
+
+        let fileModificationDate = (try? FileManager.default.attributesOfItem(atPath: sessionLogPath))?[.modificationDate] as? Date
+        return ActivityState(
+            isRunning: false,
+            lastActivity: fallbackActivityAt ?? fileModificationDate ?? fallbackDate
+        )
+    }
+
+    private func parsedTimestamp(from rawValue: String) -> Date? {
+        if let parsed = timestampFormatterWithFractionalSeconds.date(from: rawValue) {
+            return parsed
+        }
+        return timestampFormatter.date(from: rawValue)
     }
 
     private func cachedProjectContext(for pid: Int, fallbackProject: String) -> ProjectContext {
