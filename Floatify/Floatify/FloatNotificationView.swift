@@ -406,6 +406,10 @@ private struct SpriteStageView: View {
 
     @State private var glowPulse: CGFloat = 1.0
     @State private var celebrateScale: CGFloat = 1.0
+    @State private var celebrateRotation: Double = 0
+    @State private var celebrateRingScale: CGFloat = 0.76
+    @State private var celebrateRingOpacity: Double = 0
+    @State private var badgeScale: CGFloat = 0.84
 
     var body: some View {
         ZStack {
@@ -426,6 +430,14 @@ private struct SpriteStageView: View {
                 .frame(width: stageSize * 1.35 * glowPulse, height: stageSize * 1.35 * glowPulse)
                 .blur(radius: 5)
 
+            if isComplete {
+                Circle()
+                    .strokeBorder(statusColor.opacity(0.85), lineWidth: 1.6)
+                    .frame(width: stageSize * celebrateRingScale, height: stageSize * celebrateRingScale)
+                    .opacity(celebrateRingOpacity)
+                    .blur(radius: 0.5)
+            }
+
             // Sprite - motion gated on state
             Group {
                 if let sheetName {
@@ -441,9 +453,15 @@ private struct SpriteStageView: View {
             }
             .bobbing(isEnabled: isRunning && isAnimating)
             .scaleEffect(celebrateScale)
+            .rotationEffect(.degrees(celebrateRotation))
 
             if isComplete {
                 SparkleBurst(trigger: completeTrigger)
+            }
+
+            if isComplete {
+                completeBadge
+                    .offset(x: stageSize * 0.24, y: -stageSize * 0.22)
             }
         }
         .frame(width: stageSize + 6, height: stageSize + 6)
@@ -463,13 +481,42 @@ private struct SpriteStageView: View {
         }
     }
 
+    private var completeBadge: some View {
+        Image(systemName: "checkmark.circle.fill")
+            .font(.system(size: max(stageSize * 0.30, 10), weight: .bold))
+            .foregroundStyle(.white, statusColor)
+            .shadow(color: statusColor.opacity(0.45), radius: 4, x: 0, y: 1)
+            .scaleEffect(badgeScale)
+    }
+
     private func celebrate() {
+        celebrateRingScale = 0.76
+        celebrateRingOpacity = 0.84
+        badgeScale = 0.78
+
         withAnimation(.spring(response: 0.25, dampingFraction: 0.45)) {
-            celebrateScale = 1.22
+            celebrateScale = 1.20
+            celebrateRotation = -8
+            badgeScale = 1.16
+        }
+        withAnimation(.easeOut(duration: 0.45)) {
+            celebrateRingScale = 1.42
+            celebrateRingOpacity = 0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.11) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) {
+                celebrateRotation = 6
+            }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.58)) {
                 celebrateScale = 1.0
+                badgeScale = 1.0
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.72)) {
+                celebrateRotation = 0
             }
         }
     }
@@ -549,18 +596,60 @@ struct ShakeEffect: GeometryEffect {
 private struct CompletionShakeModifier: ViewModifier {
     let shakeTrigger: UUID?
 
-    @State private var shakeAmount: CGFloat = 0
+    @State private var shakeOffsetX: CGFloat = 0
+    @State private var shakeRotation: Double = 0
+    @State private var shakeScale: CGFloat = 1.0
 
     func body(content: Content) -> some View {
         content
-            .modifier(ShakeEffect(animatableData: shakeAmount))
+            .offset(x: shakeOffsetX)
+            .rotationEffect(.degrees(shakeRotation))
+            .scaleEffect(shakeScale)
             .onChange(of: shakeTrigger) { newValue in
                 guard newValue != nil else { return }
-                shakeAmount = 0
-                withAnimation(.easeOut(duration: 0.6)) {
-                    shakeAmount = 1
-                }
+                performShake()
             }
+    }
+
+    private func performShake() {
+        shakeOffsetX = 0
+        shakeRotation = 0
+        shakeScale = 1.0
+
+        withAnimation(.easeOut(duration: 0.06)) {
+            shakeOffsetX = -11
+            shakeRotation = -1.2
+            shakeScale = 1.012
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+            withAnimation(.easeInOut(duration: 0.08)) {
+                shakeOffsetX = 10
+                shakeRotation = 1.1
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
+            withAnimation(.easeInOut(duration: 0.08)) {
+                shakeOffsetX = -7
+                shakeRotation = -0.8
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+            withAnimation(.easeInOut(duration: 0.07)) {
+                shakeOffsetX = 5
+                shakeRotation = 0.5
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.29) {
+            withAnimation(.spring(response: 0.22, dampingFraction: 0.72)) {
+                shakeOffsetX = 0
+                shakeRotation = 0
+                shakeScale = 1.0
+            }
+        }
     }
 }
 
@@ -1168,6 +1257,8 @@ struct FloatNotificationView: View {
         let shouldAnimate = newState == .complete && (animateInitialComplete || lastObservedStatusState != .complete)
         lastObservedStatusState = newState
         guard shouldAnimate else { return }
-        completionTrigger = UUID()
+        let trigger = UUID()
+        completionTrigger = trigger
+        shakeTrigger = trigger
     }
 }

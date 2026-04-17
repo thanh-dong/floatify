@@ -15,19 +15,23 @@ Two components:
 ## Build Commands
 
 ```bash
+# Build and apply the app to the current machine
+./build.sh
+
 # Generate Xcode project
 cd Floatify && xcodegen generate
 
-# Build the app
+# Build the app without applying it
 xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
 
 # Build just the CLI
 xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
 ```
 
-- After every app build, make sure the running `Floatify.app` process is the fresh build you just produced.
-- Do not trust an older `/Applications/Floatify.app` or any previously launched copy.
-- If needed, quit the current `Floatify` process and launch the latest app from Xcode `DerivedData` before testing.
+- When you need to rebuild `Floatify.app` for real use on this machine, run `./build.sh`.
+- `./build.sh` builds, replaces the installed app, updates the CLI symlink, and relaunches the running app.
+- Do not rely on raw `xcodebuild` if the goal is to test the current app UI after changes.
+- Use raw `xcodebuild` only for compile-only verification.
 
 ## Architecture
 
@@ -187,7 +191,7 @@ User instructions always override this file.
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **floatify** (410 symbols, 558 relationships, 0 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **floatify** (411 symbols, 558 relationships, 0 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
