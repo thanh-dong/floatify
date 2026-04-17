@@ -937,6 +937,33 @@ struct FloatNotificationView: View {
         statusIndicatorColor ?? .blue
     }
 
+    private var avatarBackgroundPrimaryOpacity: Double {
+        guard let statusState else { return 0.18 }
+        switch statusState {
+        case .running: return 0.42
+        case .idle: return 0.34
+        case .complete: return 0.30
+        }
+    }
+
+    private var avatarBackgroundSecondaryOpacity: Double {
+        guard let statusState else { return 0.08 }
+        switch statusState {
+        case .running: return 0.24
+        case .idle: return 0.20
+        case .complete: return 0.18
+        }
+    }
+
+    private var avatarBackgroundBorderOpacity: Double {
+        guard let statusState else { return 0.08 }
+        switch statusState {
+        case .running: return 0.18
+        case .idle: return 0.16
+        case .complete: return 0.14
+        }
+    }
+
     private var stateLabel: String? {
         guard let state = statusState else { return nil }
         switch state {
@@ -1182,8 +1209,9 @@ struct FloatNotificationView: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        FloaterPalette.panelShadow.opacity(0.96),
-                        FloaterPalette.panelTint.opacity(0.94)
+                        accentColor.opacity(avatarBackgroundPrimaryOpacity),
+                        accentColor.opacity(avatarBackgroundSecondaryOpacity),
+                        FloaterPalette.panelShadow.opacity(0.92)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -1192,21 +1220,20 @@ struct FloatNotificationView: View {
             .overlay(
                 LinearGradient(
                     colors: [
-                        accentColor.opacity(isRunning ? 0.26 : 0.18),
-                        accentColor.opacity(isRunning ? 0.12 : 0.08),
-                        .clear,
+                        FloaterPalette.highlight.opacity(0.10),
+                        .clear
                     ],
-                    startPoint: .topLeading,
+                    startPoint: .top,
                     endPoint: .bottom
                 )
             )
             .overlay(
                 Rectangle()
-                    .strokeBorder(FloaterPalette.highlight.opacity(isRunning ? 0.14 : 0.08), lineWidth: 0.8)
+                    .strokeBorder(accentColor.opacity(avatarBackgroundBorderOpacity), lineWidth: 0.8)
             )
             .overlay(alignment: .trailing) {
                 Rectangle()
-                    .fill(FloaterPalette.highlight.opacity(0.08))
+                    .fill(accentColor.opacity(avatarBackgroundBorderOpacity))
                     .frame(width: 1)
                     .padding(.vertical, 4)
             }
