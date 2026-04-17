@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("FloaterSize") private var floaterSize: String = "regular"
+    @AppStorage("FloaterTheme") private var floaterTheme: String = "dark"
     @AppStorage("IdleTimeout") private var idleTimeout: Int = 15
 
     private let timeoutFormatter: NumberFormatter = {
@@ -15,6 +16,12 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section {
+                Picker("Theme", selection: $floaterTheme) {
+                    Text("Dark").tag("dark")
+                    Text("Light").tag("light")
+                }
+                .pickerStyle(.inline)
+
                 Picker("Display Style", selection: $floaterSize) {
                     Text("Compact").tag("compact")
                     Text("Regular").tag("regular")

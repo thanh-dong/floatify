@@ -1,20 +1,85 @@
 import AppKit
 import SwiftUI
 
+enum FloaterTheme: String {
+    case dark
+    case light
+
+    static let userDefaultsKey = "FloaterTheme"
+
+    static var current: FloaterTheme {
+        let rawValue = UserDefaults.standard.string(forKey: userDefaultsKey) ?? FloaterTheme.dark.rawValue
+        return FloaterTheme(rawValue: rawValue) ?? .dark
+    }
+}
+
+private struct FloaterThemePalette {
+    let panelTint: Color
+    let panelShadow: Color
+    let primaryText: Color
+    let secondaryText: Color
+    let strokeStrong: Color
+    let strokeSoft: Color
+    let highlight: Color
+    let running: Color
+    let idle: Color
+    let complete: Color
+    let warning: Color
+    let chipFill: Color
+    let closeHover: Color
+}
+
 enum FloaterPalette {
-    static let panelTint = Color(red: 0.075, green: 0.082, blue: 0.118)
-    static let panelShadow = Color(red: 0.020, green: 0.024, blue: 0.040)
-    static let primaryText = Color(red: 0.955, green: 0.970, blue: 1.000)
-    static let secondaryText = Color(red: 0.645, green: 0.705, blue: 0.815)
-    static let strokeStrong = Color(red: 0.720, green: 0.790, blue: 0.930)
-    static let strokeSoft = Color(red: 0.280, green: 0.330, blue: 0.430)
-    static let highlight = Color(red: 0.980, green: 0.990, blue: 1.000)
-    static let running = Color(red: 0.965, green: 0.470, blue: 0.410)
-    static let idle = Color(red: 0.915, green: 0.705, blue: 0.320)
-    static let complete = Color(red: 0.330, green: 0.845, blue: 0.645)
-    static let warning = Color(red: 0.948, green: 0.598, blue: 0.360)
-    static let chipFill = Color(red: 0.145, green: 0.165, blue: 0.230)
-    static let closeHover = Color(red: 0.240, green: 0.280, blue: 0.390)
+    private static var palette: FloaterThemePalette {
+        switch FloaterTheme.current {
+        case .dark:
+            return FloaterThemePalette(
+                panelTint: Color(red: 0.075, green: 0.082, blue: 0.118),
+                panelShadow: Color(red: 0.020, green: 0.024, blue: 0.040),
+                primaryText: Color(red: 0.955, green: 0.970, blue: 1.000),
+                secondaryText: Color(red: 0.645, green: 0.705, blue: 0.815),
+                strokeStrong: Color(red: 0.720, green: 0.790, blue: 0.930),
+                strokeSoft: Color(red: 0.280, green: 0.330, blue: 0.430),
+                highlight: Color(red: 0.980, green: 0.990, blue: 1.000),
+                running: Color(red: 0.965, green: 0.470, blue: 0.410),
+                idle: Color(red: 0.915, green: 0.705, blue: 0.320),
+                complete: Color(red: 0.330, green: 0.845, blue: 0.645),
+                warning: Color(red: 0.948, green: 0.598, blue: 0.360),
+                chipFill: Color(red: 0.145, green: 0.165, blue: 0.230),
+                closeHover: Color(red: 0.240, green: 0.280, blue: 0.390)
+            )
+        case .light:
+            return FloaterThemePalette(
+                panelTint: Color(red: 0.969, green: 0.976, blue: 0.988),
+                panelShadow: Color(red: 0.106, green: 0.133, blue: 0.188),
+                primaryText: Color(red: 0.094, green: 0.129, blue: 0.200),
+                secondaryText: Color(red: 0.357, green: 0.404, blue: 0.490),
+                strokeStrong: Color(red: 0.722, green: 0.769, blue: 0.847),
+                strokeSoft: Color(red: 0.835, green: 0.867, blue: 0.922),
+                highlight: Color(red: 1.000, green: 1.000, blue: 1.000),
+                running: Color(red: 0.847, green: 0.302, blue: 0.255),
+                idle: Color(red: 0.773, green: 0.541, blue: 0.082),
+                complete: Color(red: 0.133, green: 0.541, blue: 0.384),
+                warning: Color(red: 0.851, green: 0.467, blue: 0.227),
+                chipFill: Color(red: 0.914, green: 0.933, blue: 0.969),
+                closeHover: Color(red: 0.863, green: 0.894, blue: 0.945)
+            )
+        }
+    }
+
+    static var panelTint: Color { palette.panelTint }
+    static var panelShadow: Color { palette.panelShadow }
+    static var primaryText: Color { palette.primaryText }
+    static var secondaryText: Color { palette.secondaryText }
+    static var strokeStrong: Color { palette.strokeStrong }
+    static var strokeSoft: Color { palette.strokeSoft }
+    static var highlight: Color { palette.highlight }
+    static var running: Color { palette.running }
+    static var idle: Color { palette.idle }
+    static var complete: Color { palette.complete }
+    static var warning: Color { palette.warning }
+    static var chipFill: Color { palette.chipFill }
+    static var closeHover: Color { palette.closeHover }
 }
 
 // MARK: - FloaterSize

@@ -6,6 +6,8 @@ class FloatPanel: NSPanel {
     var notificationCorner: Corner = .bottomRight
     var dismissController: DismissController?
     var isPersistentStatusPanel = false
+    var temporaryMessage: String?
+    var temporaryProject: String?
 
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
@@ -95,10 +97,12 @@ class FloatNotificationManager {
     private var isFloaterPanelCollapsed: Bool
     private var defaultsObserver: NSObjectProtocol?
     private var lastFloaterSizeRaw: String
+    private var lastFloaterThemeRaw: String
 
     private init() {
         isFloaterPanelCollapsed = false
         lastFloaterSizeRaw = UserDefaults.standard.string(forKey: "FloaterSize") ?? "regular"
+        lastFloaterThemeRaw = UserDefaults.standard.string(forKey: "FloaterTheme") ?? FloaterTheme.dark.rawValue
 
         defaultsObserver = NotificationCenter.default.addObserver(
             forName: UserDefaults.didChangeNotification,
@@ -207,6 +211,8 @@ class FloatNotificationManager {
 
         let dismissController = DismissController()
         newPanel.dismissController = dismissController
+        newPanel.temporaryMessage = message
+        newPanel.temporaryProject = project
         let view = FloatNotificationView(
             message: message,
             project: project,
@@ -332,6 +338,10 @@ class FloatNotificationManager {
         UserDefaults.standard.string(forKey: "FloaterSize") ?? "regular"
     }
 
+    private var floaterThemeRaw: String {
+        UserDefaults.standard.string(forKey: "FloaterTheme") ?? FloaterTheme.dark.rawValue
+    }
+
     private var floaterSize: FloaterSize {
         switch floaterSizeRaw {
         case "compact": return .compact
@@ -342,9 +352,34 @@ class FloatNotificationManager {
 
     private func handleDefaultsChange() {
         let newSize = floaterSizeRaw
-        guard newSize != lastFloaterSizeRaw else { return }
+        let newTheme = floaterThemeRaw
+        let sizeChanged = newSize != lastFloaterSizeRaw
+        let themeChanged = newTheme != lastFloaterThemeRaw
+        guard sizeChanged || themeChanged else { return }
+
         lastFloaterSizeRaw = newSize
+        lastFloaterThemeRaw = newTheme
         refreshFloaterPanel(animated: true)
+
+        if themeChanged {
+            for panel in panels {
+                guard let message = panel.temporaryMessage,
+                      let dismissController = panel.dismissController else {
+                    continue
+                }
+
+                panel.contentView = NSHostingView(
+                    rootView: FloatNotificationView(
+                        message: message,
+                        project: panel.temporaryProject,
+                        corner: panel.notificationCorner,
+                        playsEntryAnimation: false,
+                        dismissController: dismissController
+                    )
+                )
+                panel.orderFrontRegardless()
+            }
+        }
     }
 
     private var sheetAssignments: [String: String] = [:]
