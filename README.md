@@ -1,116 +1,80 @@
-# Floatify
+## Floatify
 
-**Website:** https://floatify-app.vercel.app
+Website: https://floatify-app.vercel.app
 
-<!-- Header Banner -->
-<p align="center">
-  <img src="https://img.shields.io/badge/macOS-11%2B-blue?style=for-the-badge" alt="macOS 11+">
-  <img src="https://img.shields.io/badge/Swift-5.9-orange?style=for-the-badge" alt="Swift 5.9">
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License">
-  <img src="https://img.shields.io/badge/Platform-arm64%20%7C%20x86__64-blueviolet?style=for-the-badge" alt="Platforms">
-</p>
+![Floatify Demo](website/public/demo.gif)
 
-<p align="center">
-  A lightweight <strong>macOS menu bar daemon</strong> that renders animated floating notifications in screen dead zones.
-</p>
+Floatify is a macOS menu bar app with two overlay types:
 
-<p align="center">
-  <img src="website/public/demo.gif" alt="Floatify Demo" width="800">
-</p>
+- Temporary notifications sent by the `floatify` CLI
+- Persistent session floaters for Claude Code and Codex
 
----
+## What Ships Today
 
-## Table of Contents
+- One persistent floater per live Claude Code or Codex session
+- Project label, color status, sprite avatar, git modified file count, and last activity time
+- Theme, display style, and idle timeout in the Settings window
+- Drag to move floaters, close one floater, or restack them with Arrange
+- Click a floater to open the project in VS Code when the path is known
+- Temporary notifications still support `bottomLeft`, `bottomRight`, `topLeft`, `topRight`, `center`, `menubar`, `horizontal`, and `cursorFollow`
+- FIFO pipe IPC at `/var/tmp/floatify.pipe`
+- Non-activating `NSPanel` windows that stay visible without stealing focus
 
-- [Features](#features)
-- [Why Floatify](#why-floatify)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [CLI Reference](#cli-reference)
-- [Hook Setup](#hook-setup)
-- [Architecture](#architecture)
-- [Contributing](#contributing)
-- [License](#license)
+## Current Gaps
 
----
+- Codex can infer task state from session logs.
+- Claude session discovery is automatic, but accurate running and complete state still depends on hooks.
+- `~/.floatify/positions.json` only affects temporary notifications. It does not style persistent session floaters.
+- Persistent floater placement is drag-and-arrange today. There is no full layout editor yet.
 
-## Features
+## Install
 
-- Floating notifications in screen corners and center positions
-- Cursor-follow mode for dynamic positioning
-- Sub-millisecond IPC via FIFO pipes
-- No Dock icon (LSUIElement background app)
-- Stacking support with up to 3 visible notifications
-- Smooth animated transitions
-- Claude Code and Codex hook integration for automation
-- **File changes badge** - Shows git modified files count on each session floater
-- **Activity timestamp** - Displays relative time since last session activity (Just now / 2m ago / 1h ago)
+Prerequisites:
 
-## Why Floatify
+- macOS 11 or later
+- XcodeGen installed with `brew install xcodegen`
 
-| Benefit | Description |
-|---------|-------------|
-| Zero distraction | Notifications appear in screen dead zones, never blocking your work |
-| Focus-friendly | Non-activating NSPanel never steals keyboard focus |
-| Blazing fast | FIFO pipe IPC achieves sub-millisecond latency |
-| Clean integration | Works with Claude Code and Codex hooks |
-| Lightweight | No network permissions, minimal resource usage |
-| Context-aware | Git changes count and activity timestamps keep you informed |
-
----
-
-## Installation
-
-### Prerequisites
-
-- macOS 11.0 (Big Sur) or later
-- XcodeGen installed (`brew install xcodegen`)
-
-### Build from Source
+Recommended install:
 
 ```bash
-# Clone the repository
 git clone https://github.com/HiepPP/floatify.git
 cd floatify
-
-# Generate Xcode project
-cd Floatify && xcodegen generate
-
-# Build the app
-xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Release build \
-  CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
+./build.sh
 ```
 
-### Run the App
+`./build.sh` generates the Xcode project when needed, builds the app and CLI, installs `Floatify.app` to `/Applications`, updates `/usr/local/bin/floatify`, and relaunches the app.
+
+Compile-only commands:
 
 ```bash
-open ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/Floatify.app
+cd Floatify
+xcodegen generate
+xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
+xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
 ```
-
-Approve the CLI symlink prompt when it appears. The `floatify` command will be available in your PATH.
-
----
 
 ## Quick Start
 
+Temporary notification:
+
 ```bash
-# Basic notification
-floatify --message 'Task complete!' --position bottomRight --duration 6
-
-# Corner positions
-floatify --message 'Bottom Left!' --position bottomLeft --duration 4
-floatify --message 'Bottom Right!' --position bottomRight --duration 4
-floatify --message 'Top Left!' --position topLeft --duration 4
-floatify --message 'Top Right!' --position topRight --duration 4
-floatify --message 'Centered!' --position center --duration 5
-floatify --message 'Below menu bar!' --position menubar --duration 5
-floatify --message 'Horizontal!' --position horizontal --duration 5
-
-# Follows your cursor
-floatify --message 'Following cursor!' --position cursorFollow --duration 8
+floatify --message "Deploy done!" --position bottomRight --duration 6
 ```
 
----
+Status updates:
+
+```bash
+floatify --status running
+floatify --status complete
+```
+
+More examples:
+
+```bash
+floatify --message "Watch this" --position cursorFollow --duration 8
+floatify --message "Menu bar alert" --position menubar --duration 5
+floatify --message "Horizontal alert" --position horizontal --duration 5
+```
 
 ## CLI Reference
 
@@ -118,35 +82,56 @@ floatify --message 'Following cursor!' --position cursorFollow --duration 8
 floatify [options]
 ```
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--message` | Notification text | `Task complete!` |
-| `--position` | Screen position | `bottomRight` |
-| `--duration` | Auto-dismiss seconds | `6` |
-| `--effect` | Animation effect | Position-specific |
+| Flag | Meaning | Default |
+| --- | --- | --- |
+| `--message` | Temporary notification text | `Task complete!` |
+| `--position` or `--corner` | Notification position | `bottomRight` |
+| `--duration` | Auto-dismiss seconds for notifications | `6` |
+| `--project` | Project label in payload | Current folder name |
+| `--effect` | Notification entry effect override | Position default |
+| `--status` | Session status update | Not set |
 
-### Position Options
+Status values:
 
-| Flag | Description |
-|------|-------------|
-| `--position bottomLeft` | Bottom-left corner |
-| `--position bottomRight` | Bottom-right corner |
-| `--position topLeft` | Top-left corner |
-| `--position topRight` | Top-right corner |
-| `--position center` | Screen center |
-| `--position menubar` | Below menu bar |
-| `--position horizontal` | Horizontal layout at bottom-center |
-| `--position cursorFollow` | Follows cursor position |
+- `running`
+- `idle`
+- `complete`
+- `done`
 
----
+Current status behavior:
+
+- `running` shows the red running state.
+- `idle` shows the yellow idle state.
+- `complete` and `done` enter idle first, then auto-transition to green after the idle timeout. The default timeout is 15 seconds.
+
+## Settings And Overrides
+
+Settings window controls persistent floaters:
+
+- Theme: dark or light
+- Display style: compact, regular, or large
+- Idle timeout: seconds before idle turns into complete
+
+Optional JSON override for temporary notifications only:
+
+```json
+{
+  "bottomRight": {
+    "margin": 20,
+    "width": 320,
+    "height": 80,
+    "stackOffset": 6
+  }
+}
+```
+
+Save that file to `~/.floatify/positions.json`.
 
 ## Hook Setup
 
-Floatify creates one floater per live Claude Code or Codex session. Hooks only update `running` and `complete` state through the CLI.
+Floatify discovers live Claude Code and Codex sessions automatically. Hooks improve status accuracy.
 
-### Claude Code
-
-Add this to `~/.claude/settings.json`:
+Claude Code example:
 
 ```json
 {
@@ -170,31 +155,17 @@ Add this to `~/.claude/settings.json`:
           }
         ]
       }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh -c '/usr/local/bin/floatify --status running >/dev/null 2>&1'"
-          }
-        ]
-      }
     ]
   }
 }
 ```
 
-### Codex
+Current Claude gap:
 
-First enable hooks in `~/.codex/config.toml`:
+- The app does not infer Claude running state on its own.
+- This repo does not recommend `UserPromptSubmit` for Claude because it can interfere with prompt flow.
 
-```toml
-[features]
-codex_hooks = true
-```
-
-Then create `~/.codex/hooks.json`:
+Codex example:
 
 ```json
 {
@@ -223,102 +194,33 @@ Then create `~/.codex/hooks.json`:
 }
 ```
 
-Codex reads hook commands from `~/.codex/hooks.json`, not from `config.toml`.
-
-| Tool | Event | Command |
-|------|-------|---------|
-| Claude Code | `UserPromptSubmit` | `/usr/local/bin/floatify --status running` |
-| Claude Code | `Stop` | `/usr/local/bin/floatify --status complete` |
-| Claude Code | `SessionEnd` | `/usr/local/bin/floatify --status complete` |
-| Codex | `UserPromptSubmit` | `/usr/local/bin/floatify --status running` |
-| Codex | `Stop` | `/usr/local/bin/floatify --status complete` |
-
----
-
-## Configuration
-
-Floatify uses `positions.json` for per-position notification configuration. The bundled defaults are at `Floatify/Floatify/Resources/positions.json`.
-
-### Config Fields
-
-| Field | Description |
-|-------|-------------|
-| `margin` | Distance from screen edge (pixels) |
-| `width` | Panel width (pixels) |
-| `height` | Panel height (pixels) |
-| `stackOffset` | Vertical spacing between stacked notifications (pixels) |
-
-### User Overrides
-
-Place your custom config at `~/.floatify/positions.json`. User values take precedence over bundled defaults.
-
-```json
-{
-  "bottomRight": {
-    "margin": 20,
-    "width": 320,
-    "height": 80,
-    "stackOffset": 6
-  }
-}
-```
-
-### Supported Positions
-
-`bottomLeft`, `bottomRight`, `topLeft`, `topRight`, `center`, `menubar`, `horizontal`, `cursorFollow`
+The repo examples use `~/.claude/settings.json` for Claude and `~/.codex/hooks.json` for Codex.
 
 ## Architecture
 
-```
-Claude Code and Codex hooks -> floatify CLI -> FIFO pipe IPC -> Floatify.app -> NSPanel overlay
-```
-
-### Components
-
-| Component | Description |
-|-----------|-------------|
-| **Floatify.app** | Background GUI app (LSUIElement) owning the floating NSPanel overlay |
-| **floatify CLI** | Command-line tool that sends messages to the app via FIFO pipe IPC |
-
-### Technical Highlights
-
-- **FIFO pipe** (`/var/tmp/floatify.pipe`) for sub-ms IPC without network permissions
-- **NSPanel** with `.nonactivatingPanel` to avoid stealing keyboard focus
-- **`.popUpMenu`** window level floats above all apps including fullscreen windows
-- **Max 3 stacked panels** with 4px vertical offset for multiple notifications
-
-### IPC Protocol
-
-JSON payload sent via FIFO pipe:
-
-```json
-{
-  "message": "Task complete!",
-  "corner": "bottomRight",
-  "duration": "6"
-}
+```text
+Claude hooks / floatify CLI / session monitors
+  -> FIFO pipe IPC + process scan + Codex session log scan
+  -> Floatify.app
+  -> temporary notifications and persistent session floaters
 ```
 
----
+Main components:
+
+| Component | Role |
+| --- | --- |
+| `Floatify.app` | Background macOS app that owns the overlay windows and menu bar UI |
+| `floatify` CLI | Sends notification and status payloads through the FIFO pipe |
+| `ClaudeSessionMonitor` | Finds live Claude sessions and project paths |
+| `CodexActivityMonitor` | Finds live Codex sessions and infers task state from session logs |
 
 ## Contributing
 
-Contributions are welcome.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
+1. Fork the repository.
+2. Create a branch.
+3. Commit your changes.
+4. Open a pull request.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-<p align="center">
-  <a href="#table-of-contents">Back to top</a>
-</p>
+MIT License. See `LICENSE`.

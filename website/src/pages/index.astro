@@ -41,10 +41,10 @@ import Layout from '../layouts/Layout.astro';
         Floating Session HUDs<br/>for Developers
       </h1>
       <p class="text-xl text-terminal-text-secondary mb-8">
-        Per-session floaters that stay visible without stealing focus
+        Per-session floaters first. Temporary alerts when you need them.
       </p>
       <p class="text-lg text-terminal-text-tertiary">
-        A macOS menu bar app for Claude Code and Codex. It shows one persistent floater per live session with project labels, color-coded status, git file changes count, and activity timestamps.
+        A macOS menu bar app for Claude Code and Codex. Each live session gets a persistent floater with project label, color status, sprite avatar, git file count, and activity time. The CLI still sends one-off notifications.
       </p>
     </div>
 
@@ -153,7 +153,7 @@ import Layout from '../layouts/Layout.astro';
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
         </svg>
         <h3 class="text-lg font-semibold text-terminal-text mb-2">Drag, Close, Arrange</h3>
-        <p class="text-sm text-terminal-text-secondary">Move floaters anywhere, close the ones you do not need, or restack them from the menu bar.</p>
+        <p class="text-sm text-terminal-text-secondary">Move floaters anywhere, close the ones you do not need, restack them from the menu bar, or click a floater to open its project in VS Code.</p>
       </div>
       <!-- Feature 5: FIFO Pipe IPC -->
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-6 hover:-translate-y-1 hover:border-terminal-border-hover transition-all duration-200">
@@ -169,7 +169,7 @@ import Layout from '../layouts/Layout.astro';
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
         </svg>
         <h3 class="text-lg font-semibold text-terminal-text mb-2">Claude and Codex</h3>
-        <p class="text-sm text-terminal-text-secondary">Live session discovery creates one floater per process. Hooks drive running and complete state updates for both tools.</p>
+        <p class="text-sm text-terminal-text-secondary">Both tools get live session discovery. Codex can infer task state from session logs. Claude still works best with hooks.</p>
       </div>
       <!-- Feature 7: Configurable -->
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-6 hover:-translate-y-1 hover:border-terminal-border-hover transition-all duration-200">
@@ -177,8 +177,8 @@ import Layout from '../layouts/Layout.astro';
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
-        <h3 class="text-lg font-semibold text-terminal-text mb-2">Sprite HUD UI</h3>
-        <p class="text-sm text-terminal-text-secondary">Persistent floaters use animated sprite characters and a compact HUD layout built for glanceable status.</p>
+        <h3 class="text-lg font-semibold text-terminal-text mb-2">Settings Window</h3>
+        <p class="text-sm text-terminal-text-secondary">Theme, display style, and idle timeout update all visible floaters right away.</p>
       </div>
       <!-- Feature 8: File Changes & Activity -->
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-6 hover:-translate-y-1 hover:border-terminal-border-hover transition-all duration-200">
@@ -191,13 +191,13 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- Configuration Section -->
+  <!-- Settings Section -->
   <section id="configuration" aria-labelledby="config-heading" class="py-20 px-6 max-w-4xl mx-auto">
-    <h2 id="config-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Configuration</h2>
-    <p class="text-terminal-text-secondary mb-6">Floatify uses <code class="px-2 py-1 bg-terminal-card rounded text-sm">positions.json</code> for per-position notification settings. Place your custom config at <code class="px-2 py-1 bg-terminal-card rounded text-sm">~/.floatify/positions.json</code>.</p>
+    <h2 id="config-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Settings And Gaps</h2>
+    <p class="text-terminal-text-secondary mb-6">Persistent session floaters are configured in the app. <code class="px-2 py-1 bg-terminal-card rounded text-sm">positions.json</code> is still supported, but only for temporary notifications.</p>
     <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
       <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
-        <span class="text-xs text-terminal-text-muted font-mono">positions.json</span>
+        <span class="text-xs text-terminal-text-muted font-mono">~/.floatify/positions.json</span>
         <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
       </div>
       <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>{`{
@@ -217,21 +217,25 @@ import Layout from '../layouts/Layout.astro';
     </div>
     <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
-        <p class="text-xs text-terminal-text-muted font-mono mb-1">margin</p>
-        <p class="text-sm text-terminal-text">Screen edge distance (px)</p>
+        <p class="text-xs text-terminal-text-muted font-mono mb-1">Theme</p>
+        <p class="text-sm text-terminal-text">Dark or light floater palette</p>
       </div>
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
-        <p class="text-xs text-terminal-text-muted font-mono mb-1">width</p>
-        <p class="text-sm text-terminal-text">Panel width (px)</p>
+        <p class="text-xs text-terminal-text-muted font-mono mb-1">Display style</p>
+        <p class="text-sm text-terminal-text">Compact, regular, or large HUD rows</p>
       </div>
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
-        <p class="text-xs text-terminal-text-muted font-mono mb-1">height</p>
-        <p class="text-sm text-terminal-text">Panel height (px)</p>
+        <p class="text-xs text-terminal-text-muted font-mono mb-1">Idle timeout</p>
+        <p class="text-sm text-terminal-text">Seconds before idle turns green</p>
       </div>
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
-        <p class="text-xs text-terminal-text-muted font-mono mb-1">stackOffset</p>
-        <p class="text-sm text-terminal-text">Stack spacing (px)</p>
+        <p class="text-xs text-terminal-text-muted font-mono mb-1">Temp alert layout</p>
+        <p class="text-sm text-terminal-text">Optional JSON overrides for notification size and spacing</p>
       </div>
+    </div>
+    <div class="mt-6 rounded-lg border border-terminal-border bg-terminal-card p-5">
+      <p class="text-sm text-terminal-text-secondary">Current gap: Codex can infer task state from session logs, but Claude still needs hooks for precise running and complete status.</p>
+      <p class="mt-3 text-sm text-terminal-text-secondary">Current gap: persistent floater placement is drag-and-arrange today. The JSON file does not control that layout.</p>
     </div>
   </section>
 
@@ -243,7 +247,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="flex-1 flex flex-col items-center text-center relative">
         <div class="w-12 h-12 rounded-full bg-terminal-surface text-terminal-text flex items-center justify-center text-xl font-bold mb-4 z-10">1</div>
         <h3 class="text-lg font-semibold text-terminal-text mb-2">Hook Trigger</h3>
-        <p class="text-sm text-terminal-text-secondary">Live Claude Code and Codex processes create one floater per session. Hooks send running and complete status updates.</p>
+        <p class="text-sm text-terminal-text-secondary">Live Claude Code and Codex processes create one floater per session. Codex can infer task state from session logs. Claude still needs hooks for precise updates.</p>
         <!-- Arrow 1 (hidden on mobile, shown between steps on desktop) -->
         <div class="hidden md:block absolute top-6 right-0 translate-x-1/2 w-8 h-0.5 bg-terminal-border"></div>
       </div>
@@ -288,18 +292,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
-        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Deploy done!" --position bottomRight</code></pre>
-      </div>
-      <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
-        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
-          <div class="flex gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
-            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
-            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
-          </div>
-          <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
-        </div>
-        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Build failed" --position bottomLeft --duration 10</code></pre>
+        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --status running</code></pre>
       </div>
       <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
         <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
@@ -312,13 +305,24 @@ import Layout from '../layouts/Layout.astro';
         </div>
         <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --status complete</code></pre>
       </div>
+      <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
+          <div class="flex gap-1.5">
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
+            <span class="w-3 h-3 rounded-full bg-terminal-dot"></span>
+          </div>
+          <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
+        </div>
+        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Build failed" --position cursorFollow --duration 10</code></pre>
+      </div>
     </div>
   </section>
 
   <!-- Hook Setup -->
   <section id="hook-setup" aria-labelledby="hook-setup-heading" class="py-20 px-6 max-w-4xl mx-auto">
     <h2 id="hook-setup-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Hook Setup</h2>
-    <p class="text-terminal-text-secondary mb-6">Floatify creates one floater per live Claude Code or Codex process. Hooks only update running and complete state through the CLI.</p>
+    <p class="text-terminal-text-secondary mb-6">Floatify creates one floater per live Claude Code or Codex process. Hooks improve status accuracy. Codex can also infer state from session logs.</p>
 
     <div class="space-y-6">
     <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
@@ -328,12 +332,6 @@ import Layout from '../layouts/Layout.astro';
       </div>
         <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>{`{
   "hooks": {
-    "UserPromptSubmit": [{
-      "hooks": [{
-        "type": "command",
-        "command": "sh -c '/usr/local/bin/floatify --status running >/dev/null 2>&1'"
-      }]
-    }],
     "Stop": [{
       "hooks": [{
         "type": "command",
@@ -349,16 +347,7 @@ import Layout from '../layouts/Layout.astro';
   }
 }`}</code></pre>
     </div>
-    <p class="text-sm text-terminal-text-tertiary">Claude Code reads hooks from <code class="px-2 py-1 bg-terminal-card rounded text-sm">~/.claude/settings.json</code>.</p>
-
-    <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
-      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
-        <span class="text-xs text-terminal-text-muted font-mono">config.toml</span>
-        <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
-      </div>
-        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>{`[features]
-codex_hooks = true`}</code></pre>
-    </div>
+    <p class="text-sm text-terminal-text-tertiary">Claude Code reads hooks from <code class="px-2 py-1 bg-terminal-card rounded text-sm">~/.claude/settings.json</code>. Current gap: this repo does not recommend <code class="px-2 py-1 bg-terminal-card rounded text-sm">UserPromptSubmit</code> for Claude because it can disrupt prompt flow, so Claude running state still needs a safer trigger.</p>
 
     <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
       <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
@@ -390,7 +379,7 @@ codex_hooks = true`}</code></pre>
   }
 }`}</code></pre>
     </div>
-    <p class="text-sm text-terminal-text-tertiary">Codex needs <code class="px-2 py-1 bg-terminal-card rounded text-sm">codex_hooks = true</code> in <code class="px-2 py-1 bg-terminal-card rounded text-sm">~/.codex/config.toml</code>, but the command hooks live in <code class="px-2 py-1 bg-terminal-card rounded text-sm">~/.codex/hooks.json</code>.</p>
+    <p class="text-sm text-terminal-text-tertiary">The repo examples use <code class="px-2 py-1 bg-terminal-card rounded text-sm">~/.codex/hooks.json</code> for Codex. Codex can infer task state from session logs, but hooks keep the transition timing explicit.</p>
     </div>
   </section>
 
@@ -421,7 +410,7 @@ codex_hooks = true`}</code></pre>
           "name": "How does session tracking work?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Floatify discovers live Claude Code and Codex processes and creates one floater per session. Hook commands sent through the floatify CLI update running and complete state for each session."
+            "text": "Floatify discovers live Claude Code and Codex processes and creates one floater per session. Codex can also infer task state from session logs. Claude session discovery is automatic, but precise running and complete status still depends on hooks."
           }
         },
         {
@@ -437,7 +426,7 @@ codex_hooks = true`}</code></pre>
           "name": "How do I integrate with Claude Code and Codex?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Claude Code reads hooks from ~/.claude/settings.json. Codex needs codex_hooks = true in ~/.codex/config.toml and command hooks in ~/.codex/hooks.json. Both should call /usr/local/bin/floatify with --status running on prompt submit and --status complete on stop."
+            "text": "Claude Code reads hooks from ~/.claude/settings.json. Codex examples in this repo use ~/.codex/hooks.json. The current app works best when hooks send running and complete events, but Claude still lacks a safer built-in running-state trigger."
           }
         },
         {
@@ -446,6 +435,14 @@ codex_hooks = true`}</code></pre>
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "Each session floater displays the project folder name, status indicator (red/yellow/green), animated sprite character, count of modified files in the git repository, and time since last activity."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What can I configure today?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Persistent floaters are configured in the app with theme, display style, and idle timeout. Optional ~/.floatify/positions.json only changes temporary notification size and spacing. Persistent floater placement is drag-and-arrange today."
           }
         }
       ]
@@ -482,7 +479,7 @@ codex_hooks = true`}</code></pre>
           </svg>
         </summary>
         <p class="mt-3 text-sm text-terminal-text-secondary">
-          Floatify discovers live Claude Code and Codex processes and creates one floater per session. Hook commands sent through the floatify CLI update running and complete state for each session.
+          Floatify discovers live Claude Code and Codex processes and creates one floater per session. Codex can also infer task state from session logs. Claude session discovery is automatic, but precise running and complete status still depends on hooks.
         </p>
       </details>
       <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
@@ -515,7 +512,18 @@ codex_hooks = true`}</code></pre>
           </svg>
         </summary>
         <p class="mt-3 text-sm text-terminal-text-secondary">
-          Claude Code reads hooks from <code class="px-2 py-1 bg-terminal-surface rounded text-xs">~/.claude/settings.json</code>. Codex needs <code class="px-2 py-1 bg-terminal-surface rounded text-xs">codex_hooks = true</code> in <code class="px-2 py-1 bg-terminal-surface rounded text-xs">~/.codex/config.toml</code> and command hooks in <code class="px-2 py-1 bg-terminal-surface rounded text-xs">~/.codex/hooks.json</code>. Both should call <code class="px-2 py-1 bg-terminal-surface rounded text-xs">/usr/local/bin/floatify --status running</code> on prompt submit and <code class="px-2 py-1 bg-terminal-surface rounded text-xs">/usr/local/bin/floatify --status complete</code> on stop.
+          Claude Code reads hooks from <code class="px-2 py-1 bg-terminal-surface rounded text-xs">~/.claude/settings.json</code>. Codex examples in this repo use <code class="px-2 py-1 bg-terminal-surface rounded text-xs">~/.codex/hooks.json</code>. The current app works best when hooks send running and complete events, but Claude still lacks a safer built-in running-state trigger.
+        </p>
+      </details>
+      <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <summary class="flex items-center justify-between cursor-pointer list-none text-terminal-text font-medium">
+          <span>What can I configure today?</span>
+          <svg class="w-5 h-5 text-terminal-text-muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <p class="mt-3 text-sm text-terminal-text-secondary">
+          Persistent floaters are configured in the app with theme, display style, and idle timeout. Optional <code class="px-2 py-1 bg-terminal-surface rounded text-xs">~/.floatify/positions.json</code> only changes temporary notification size and spacing. Persistent floater placement is drag-and-arrange today.
         </p>
       </details>
     </div>
@@ -548,7 +556,7 @@ codex_hooks = true`}</code></pre>
           </div>
         </li>
 
-        <!-- Step 2: Generate Xcode project -->
+        <!-- Step 2: Build and install -->
         <li class="flex items-start gap-4 p-4">
           <span class="flex-shrink-0 w-8 h-8 bg-terminal-surface text-terminal-text-muted rounded-full flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -556,14 +564,14 @@ codex_hooks = true`}</code></pre>
             </svg>
           </span>
           <div class="flex-1 min-w-0">
-            <p class="text-terminal-text font-mono mb-2">Generate Xcode project</p>
+            <p class="text-terminal-text font-mono mb-2">Build and install the current app</p>
             <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm">
-              <span class="text-terminal-text-muted">$</span> <span class="text-terminal-text-secondary">cd Floatify && xcodegen generate</span>
+              <span class="text-terminal-text-muted">$</span> <span class="text-terminal-text-secondary">cd floatify && ./build.sh</span>
             </div>
           </div>
         </li>
 
-        <!-- Step 3: Build the app -->
+        <!-- Step 3: What build.sh does -->
         <li class="flex items-start gap-4 p-4">
           <span class="flex-shrink-0 w-8 h-8 bg-terminal-surface text-terminal-text-muted rounded-full flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -571,14 +579,14 @@ codex_hooks = true`}</code></pre>
             </svg>
           </span>
           <div class="flex-1 min-w-0">
-            <p class="text-terminal-text font-mono mb-2">Build the app</p>
+            <p class="text-terminal-text font-mono mb-2">What that script updates</p>
             <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm overflow-x-auto">
-              <span class="text-terminal-text-muted">$</span> <span class="text-terminal-text-secondary">xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO</span>
+              <p class="text-terminal-text-muted">Builds the app and CLI, installs <span class="text-terminal-text-secondary">Floatify.app</span> to <span class="text-terminal-text-secondary">/Applications</span>, updates <span class="text-terminal-text-secondary">/usr/local/bin/floatify</span>, and relaunches the app.</p>
             </div>
           </div>
         </li>
 
-        <!-- Step 4: Build the CLI -->
+        <!-- Step 4: Compile only -->
         <li class="flex items-start gap-4 p-4">
           <span class="flex-shrink-0 w-8 h-8 bg-terminal-surface text-terminal-text-muted rounded-full flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -586,14 +594,14 @@ codex_hooks = true`}</code></pre>
             </svg>
           </span>
           <div class="flex-1 min-w-0">
-            <p class="text-terminal-text font-mono mb-2">Build the CLI</p>
+            <p class="text-terminal-text font-mono mb-2">Compile only if you do not want to install</p>
             <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm overflow-x-auto">
-              <span class="text-terminal-text-muted">$</span> <span class="text-terminal-text-secondary">xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO</span>
+              <span class="text-terminal-text-muted">$</span> <span class="text-terminal-text-secondary">cd Floatify && xcodegen generate && xcodebuild -project Floatify.xcodeproj -scheme Floatify -configuration Debug build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO</span>
             </div>
           </div>
         </li>
 
-        <!-- Step 5: Install symlinks -->
+        <!-- Step 5: CLI -->
         <li class="flex items-start gap-4 p-4">
           <span class="flex-shrink-0 w-8 h-8 bg-terminal-surface text-terminal-text-muted rounded-full flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -601,10 +609,9 @@ codex_hooks = true`}</code></pre>
             </svg>
           </span>
           <div class="flex-1 min-w-0">
-            <p class="text-terminal-text font-mono mb-2">Install symlinks</p>
+            <p class="text-terminal-text font-mono mb-2">Use the CLI</p>
             <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm">
-              <p class="text-terminal-text-muted">The app creates symlinks automatically on first launch.</p>
-              <p class="text-terminal-text-muted mt-2">Run <span class="text-terminal-text-secondary">open /Applications/Floatify.app</span> to start.</p>
+              <p class="text-terminal-text-muted">After install, send temporary alerts with <span class="text-terminal-text-secondary">floatify --message "Task complete!"</span> or session updates with <span class="text-terminal-text-secondary">floatify --status running</span>.</p>
             </div>
           </div>
         </li>
