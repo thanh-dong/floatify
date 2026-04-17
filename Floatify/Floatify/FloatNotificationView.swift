@@ -167,6 +167,14 @@ enum FloaterSize: Equatable {
         }
     }
 
+    var persistentPanelWidth: CGFloat {
+        switch self {
+        case .compact: return 188
+        case .regular: return 236
+        case .large: return 304
+        }
+    }
+
     var contentSpacing: CGFloat {
         switch self {
         case .compact: return 6
@@ -1079,7 +1087,10 @@ struct FloatNotificationView: View {
                 temporaryContent
             }
         }
-        .frame(width: floaterSize.panelWidth, height: floaterSize.rowHeight)
+        .frame(
+            width: isPersistent ? floaterSize.persistentPanelWidth : floaterSize.panelWidth,
+            height: floaterSize.rowHeight
+        )
         .clipShape(RoundedRectangle(cornerRadius: floaterSize.cornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: floaterSize.cornerRadius)

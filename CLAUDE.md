@@ -29,9 +29,11 @@ xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Debug bui
 ```
 
 - When you need to rebuild `Floatify.app` for real use on this machine, run `./build.sh`.
+- During vibe coding, default to `./build.sh`.
+- After finishing a task during vibe coding, the agent must run `./build.sh` immediately so the installed app matches the source tree.
 - `./build.sh` builds, replaces the installed app, updates the CLI symlink, and relaunches the running app.
 - Do not rely on raw `xcodebuild` if the goal is to test the current app UI after changes.
-- Use raw `xcodebuild` only for compile-only verification.
+- Use raw `xcodebuild` only when the user explicitly wants compile-only verification.
 
 ## Architecture
 
