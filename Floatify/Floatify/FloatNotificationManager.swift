@@ -346,6 +346,7 @@ class FloatNotificationManager {
         switch floaterSizeRaw {
         case "compact": return .compact
         case "large": return .large
+        case "larger": return .larger
         default: return .regular
         }
     }
