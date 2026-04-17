@@ -28,7 +28,7 @@ targets:
         buildPhase: resources
       - path: Floatify/Assets.xcassets
         buildPhase: resources
-      - path: ../animate-source
+      - path: ../animate-source/output/avatar-sprite-sheet.png
         buildPhase: resources
     settings:
       base:

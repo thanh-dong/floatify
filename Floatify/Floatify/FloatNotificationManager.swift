@@ -91,16 +91,7 @@ class FloatNotificationManager {
     private let floaterPanelSpringDamping: CGFloat = 0.82
     private let floaterPanelSpringVelocity: CGFloat = 0.45
     private let statusEffects = ["slide", "fade", "dropdown", "marquee", "trail"]
-    private var availableSpriteSheets: [String] = {
-        guard let bundleURL = Bundle.main.resourceURL,
-              let contents = try? FileManager.default.contentsOfDirectory(at: bundleURL, includingPropertiesForKeys: nil) else {
-            return []
-        }
-        return contents
-            .filter { $0.pathExtension.lowercased() == "png" }
-            .map { $0.deletingPathExtension().lastPathComponent }
-            .sorted()
-    }()
+    private lazy var availableSpriteSheets: [String] = SpriteSheetMetadata.bundledSheetNames()
     private var isFloaterPanelCollapsed: Bool
     private var defaultsObserver: NSObjectProtocol?
     private var lastFloaterSizeRaw: String

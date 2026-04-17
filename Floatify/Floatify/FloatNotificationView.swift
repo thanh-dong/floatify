@@ -174,16 +174,18 @@ enum FloaterSize: Equatable {
 
 // MARK: - Sprite Sheet Infrastructure
 
-private struct SpriteSheetMetadata {
+struct SpriteSheetMetadata {
     let frameRects: [CGRect]
 
+    static let defaultSheetName = "avatar-sprite-sheet"
+
     static let defaultMetadata = SpriteSheetMetadata(frameRects: [
-        CGRect(x: 6, y: 203, width: 44, height: 44),
-        CGRect(x: 45, y: 203, width: 44, height: 44),
-        CGRect(x: 85, y: 203, width: 46, height: 44),
-        CGRect(x: 128, y: 205, width: 42, height: 44),
-        CGRect(x: 168, y: 206, width: 42, height: 42),
-        CGRect(x: 207, y: 207, width: 44, height: 42)
+        CGRect(x: 0, y: 0, width: 121, height: 115),
+        CGRect(x: 121, y: 0, width: 121, height: 115),
+        CGRect(x: 242, y: 0, width: 121, height: 115),
+        CGRect(x: 363, y: 0, width: 121, height: 115),
+        CGRect(x: 484, y: 0, width: 121, height: 115),
+        CGRect(x: 605, y: 0, width: 121, height: 115)
     ])
 
     static let bySheetName: [String: SpriteSheetMetadata] = [
@@ -196,6 +198,14 @@ private struct SpriteSheetMetadata {
             CGRect(x: 190, y: 15, width: 32, height: 32)
         ])
     ]
+
+    static var supportedSheetNames: [String] {
+        [defaultSheetName] + bySheetName.keys.sorted().filter { $0 != defaultSheetName }
+    }
+
+    static func bundledSheetNames() -> [String] {
+        supportedSheetNames.filter { Bundle.main.url(forResource: $0, withExtension: "png") != nil }
+    }
 
     static func forSheet(_ name: String) -> SpriteSheetMetadata {
         bySheetName[name] ?? defaultMetadata
@@ -247,7 +257,7 @@ private struct SpriteAnimationView: View {
     private let timer = Timer.publish(every: 0.16, on: .main, in: .common).autoconnect()
 
     private var effectiveSheetName: String {
-        sheetName ?? "image"
+        sheetName ?? SpriteSheetMetadata.defaultSheetName
     }
 
     private var metadata: SpriteSheetMetadata {
@@ -420,6 +430,21 @@ private struct SpriteStageView: View {
 
     var body: some View {
         ZStack {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.black.opacity(isRunning ? 0.42 : 0.34),
+                            FloaterPalette.panelShadow.opacity(isRunning ? 0.66 : 0.54),
+                            .clear
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: stageSize * 0.52
+                    )
+                )
+                .frame(width: stageSize * 0.96, height: stageSize * 0.96)
+
             // Single soft status-tinted halo. No glass disc.
             Circle()
                 .fill(
@@ -1157,8 +1182,8 @@ struct FloatNotificationView: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        accentColor.opacity(isRunning ? 0.24 : 0.16),
-                        accentColor.opacity(isRunning ? 0.10 : 0.06)
+                        FloaterPalette.panelShadow.opacity(0.96),
+                        FloaterPalette.panelTint.opacity(0.94)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -1167,12 +1192,17 @@ struct FloatNotificationView: View {
             .overlay(
                 LinearGradient(
                     colors: [
-                        FloaterPalette.highlight.opacity(0.10),
-                        .clear
+                        accentColor.opacity(isRunning ? 0.26 : 0.18),
+                        accentColor.opacity(isRunning ? 0.12 : 0.08),
+                        .clear,
                     ],
-                    startPoint: .top,
+                    startPoint: .topLeading,
                     endPoint: .bottom
                 )
+            )
+            .overlay(
+                Rectangle()
+                    .strokeBorder(FloaterPalette.highlight.opacity(isRunning ? 0.14 : 0.08), lineWidth: 0.8)
             )
             .overlay(alignment: .trailing) {
                 Rectangle()
