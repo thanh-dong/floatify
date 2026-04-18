@@ -468,6 +468,85 @@ private struct SparkleBurst: View {
     }
 }
 
+private struct DoneSparkleSweep: View {
+    let color: Color
+    let stageSize: CGFloat
+    let trigger: UUID?
+
+    @State private var sweepOffset: CGFloat = -1.25
+    @State private var sweepOpacity: Double = 0
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .strokeBorder(color.opacity(sweepOpacity * 0.22), lineWidth: 0.9)
+                .blur(radius: 1.4)
+
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            .white.opacity(sweepOpacity * 0.52),
+                            color.opacity(sweepOpacity * 0.26),
+                            .clear
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: stageSize * 0.38
+                    )
+                )
+                .scaleEffect(0.72 + sweepOpacity * 0.20)
+                .opacity(sweepOpacity * 0.62)
+
+            LinearGradient(
+                colors: [
+                    .clear,
+                    .white.opacity(0.08),
+                    .white.opacity(0.96),
+                    color.opacity(0.74),
+                    .white.opacity(0.84),
+                    .clear
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(width: stageSize * 0.34, height: stageSize * 1.15)
+            .blur(radius: 4)
+            .rotationEffect(.degrees(-28))
+            .offset(x: stageSize * 0.62 * sweepOffset)
+            .opacity(sweepOpacity)
+            .blendMode(.screen)
+        }
+        .frame(width: stageSize * 0.92, height: stageSize * 0.92)
+        .clipShape(Circle())
+        .allowsHitTesting(false)
+        .onAppear {
+            if trigger != nil { animateSweep() }
+        }
+        .onChange(of: trigger) { newValue in
+            guard newValue != nil else { return }
+            animateSweep()
+        }
+    }
+
+    private func animateSweep() {
+        sweepOffset = -1.25
+        sweepOpacity = 0
+
+        withAnimation(.easeOut(duration: 0.18)) {
+            sweepOpacity = 1
+        }
+        withAnimation(.easeInOut(duration: 1.05)) {
+            sweepOffset = 1.25
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.52) {
+            withAnimation(.easeOut(duration: 0.56)) {
+                sweepOpacity = 0
+            }
+        }
+    }
+}
+
 private struct SparkleParticleAnimation: ViewModifier {
     let angle: Double
     let distance: CGFloat
@@ -534,6 +613,7 @@ private struct SpriteStageView: View {
     @State private var celebrateRotation: Double = 0
     @State private var celebrateRingScale: CGFloat = 0.76
     @State private var celebrateRingOpacity: Double = 0
+    @State private var sparkleTrigger: UUID?
 
     var body: some View {
         ZStack {
@@ -570,6 +650,8 @@ private struct SpriteStageView: View {
                 .blur(radius: 5)
 
             if isComplete {
+                DoneSparkleSweep(color: statusColor, stageSize: stageSize, trigger: sparkleTrigger)
+
                 Circle()
                     .strokeBorder(statusColor.opacity(0.85), lineWidth: 1.6)
                     .frame(width: stageSize * celebrateRingScale, height: stageSize * celebrateRingScale)
@@ -595,7 +677,7 @@ private struct SpriteStageView: View {
             .rotationEffect(.degrees(celebrateRotation))
 
             if isComplete {
-                SparkleBurst(trigger: completeTrigger)
+                SparkleBurst(trigger: sparkleTrigger)
             }
 
         }
@@ -607,26 +689,33 @@ private struct SpriteStageView: View {
                 }
             }
             if isComplete {
-                celebrate()
+                triggerDoneSparkle(celebrateAvatar: true)
             }
         }
         .onChange(of: completeTrigger) { newValue in
             guard newValue != nil, isComplete else { return }
-            celebrate()
+            triggerDoneSparkle(celebrateAvatar: true)
+        }
+        .task(id: isComplete) {
+            guard isComplete else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 10_000_000_000)
+                guard !Task.isCancelled else { break }
+                await MainActor.run {
+                    triggerDoneSparkle(celebrateAvatar: false)
+                }
+            }
         }
     }
 
-    private func celebrate() {
-        celebrateRingScale = 0.76
-        celebrateRingOpacity = 0.84
+    private func triggerDoneSparkle(celebrateAvatar: Bool) {
+        sparkleTrigger = UUID()
+        pulseCelebrateRing()
+        guard celebrateAvatar else { return }
 
         withAnimation(.spring(response: 0.25, dampingFraction: 0.45)) {
             celebrateScale = 1.20
             celebrateRotation = -8
-        }
-        withAnimation(.easeOut(duration: 0.45)) {
-            celebrateRingScale = 1.42
-            celebrateRingOpacity = 0
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.11) {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) {
@@ -642,6 +731,16 @@ private struct SpriteStageView: View {
             withAnimation(.spring(response: 0.32, dampingFraction: 0.72)) {
                 celebrateRotation = 0
             }
+        }
+    }
+
+    private func pulseCelebrateRing() {
+        celebrateRingScale = 0.76
+        celebrateRingOpacity = 0.84
+
+        withAnimation(.easeOut(duration: 0.58)) {
+            celebrateRingScale = 1.38
+            celebrateRingOpacity = 0
         }
     }
 }
