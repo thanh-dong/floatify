@@ -909,7 +909,7 @@ private struct SpriteStageView: View {
             guard isIdle else { return }
             triggerIdleSparkle()
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                try? await Task.sleep(nanoseconds: 700_000_000)
                 guard !Task.isCancelled else { break }
                 await MainActor.run {
                     triggerIdleSparkle()
