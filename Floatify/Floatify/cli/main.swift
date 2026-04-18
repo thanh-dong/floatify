@@ -58,7 +58,7 @@ guard Double(duration) != nil else {
 }
 
 if let status {
-    let validStatuses = ["running", "complete", "done", "idle"]
+    let validStatuses = ["running", "commit", "committing", "push", "pushing", "complete", "done", "idle"]
     guard validStatuses.contains(status.lowercased()) else {
         fputs("Invalid status '\(status)'. Use: \(validStatuses.joined(separator: ", ")).\n", stderr)
         exit(1)

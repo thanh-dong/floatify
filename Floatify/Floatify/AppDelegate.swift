@@ -211,6 +211,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switch rawValue.lowercased() {
         case "running":
             return .running
+        case "commit", "committing":
+            return .committing
+        case "push", "pushing":
+            return .pushing
         case "idle":
             return .idle
         case "complete", "done":

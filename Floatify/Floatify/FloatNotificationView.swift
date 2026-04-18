@@ -10,6 +10,8 @@ private struct FloaterThemePalette {
     let strokeSoft: Color
     let highlight: Color
     let running: Color
+    let committing: Color
+    let pushing: Color
     let idle: Color
     let complete: Color
     let warning: Color
@@ -30,6 +32,8 @@ enum FloaterPalette {
                 strokeSoft: Color(red: 0.280, green: 0.330, blue: 0.430),
                 highlight: Color(red: 0.980, green: 0.990, blue: 1.000),
                 running: Color(red: 0.965, green: 0.470, blue: 0.410),
+                committing: Color(red: 0.357, green: 0.561, blue: 0.965),
+                pushing: Color(red: 0.176, green: 0.745, blue: 0.671),
                 idle: Color(red: 0.915, green: 0.705, blue: 0.320),
                 complete: Color(red: 0.330, green: 0.845, blue: 0.645),
                 warning: Color(red: 0.948, green: 0.598, blue: 0.360),
@@ -46,6 +50,8 @@ enum FloaterPalette {
                 strokeSoft: Color(red: 0.835, green: 0.867, blue: 0.922),
                 highlight: Color(red: 1.000, green: 1.000, blue: 1.000),
                 running: Color(red: 0.847, green: 0.302, blue: 0.255),
+                committing: Color(red: 0.200, green: 0.435, blue: 0.890),
+                pushing: Color(red: 0.082, green: 0.596, blue: 0.486),
                 idle: Color(red: 0.773, green: 0.541, blue: 0.082),
                 complete: Color(red: 0.133, green: 0.541, blue: 0.384),
                 warning: Color(red: 0.851, green: 0.467, blue: 0.227),
@@ -63,6 +69,8 @@ enum FloaterPalette {
     static var strokeSoft: Color { palette.strokeSoft }
     static var highlight: Color { palette.highlight }
     static var running: Color { palette.running }
+    static var committing: Color { palette.committing }
+    static var pushing: Color { palette.pushing }
     static var idle: Color { palette.idle }
     static var complete: Color { palette.complete }
     static var warning: Color { palette.warning }
@@ -1104,7 +1112,7 @@ struct FloaterPanelView: View {
                             statusIndicatorColor: item.item.state.indicatorColor,
                             statusState: item.item.state,
                             sheetName: item.sheetName,
-                            animatesStatus: item.item.state == .running || item.item.state == .idle,
+                            animatesStatus: item.item.state.animatesIndicator,
                             isDraggablePanel: true,
                             playsEntryAnimation: item.playsEntryAnimation,
                             floaterSize: item.floaterSize,
@@ -1220,7 +1228,7 @@ struct FloatNotificationView: View {
     }
 
     private var isRunning: Bool {
-        statusState == .running
+        statusState?.isProgressState == true
     }
 
     private var accentColor: Color {
@@ -1230,7 +1238,7 @@ struct FloatNotificationView: View {
     private var avatarBackgroundPrimaryOpacity: Double {
         guard let statusState else { return 0.18 }
         switch statusState {
-        case .running: return 0.42
+        case .running, .committing, .pushing: return 0.42
         case .idle: return 0.34
         case .complete: return 0.30
         }
@@ -1239,7 +1247,7 @@ struct FloatNotificationView: View {
     private var avatarBackgroundSecondaryOpacity: Double {
         guard let statusState else { return 0.08 }
         switch statusState {
-        case .running: return 0.24
+        case .running, .committing, .pushing: return 0.24
         case .idle: return 0.20
         case .complete: return 0.18
         }
@@ -1248,7 +1256,7 @@ struct FloatNotificationView: View {
     private var avatarBackgroundBorderOpacity: Double {
         guard let statusState else { return 0.08 }
         switch statusState {
-        case .running: return 0.18
+        case .running, .committing, .pushing: return 0.18
         case .idle: return 0.16
         case .complete: return 0.14
         }
@@ -1258,6 +1266,8 @@ struct FloatNotificationView: View {
         guard let state = statusState else { return nil }
         switch state {
         case .running: return "Running"
+        case .committing: return "Commit"
+        case .pushing: return "Push"
         case .idle: return "Idle"
         case .complete: return "Done"
         }
@@ -1267,12 +1277,26 @@ struct FloatNotificationView: View {
         completionTrigger
     }
 
-    private var timeAgoText: String? {
+    private var showsRunningDuration: Bool {
+        isRunning && lastActivity != nil
+    }
+
+    private var showsActivitySection: Bool {
+        showsRunningDuration
+    }
+
+    private func runningDurationText(referenceDate: Date) -> String? {
         guard let lastActivity else { return nil }
-        let interval = Date().timeIntervalSince(lastActivity)
-        if interval < 60 { return "now" }
-        if interval < 3600 { return "\(Int(interval) / 60)m" }
-        return "\(Int(interval) / 3600)h"
+        let elapsed = max(Int(referenceDate.timeIntervalSince(lastActivity)), 0)
+        let hours = elapsed / 3600
+        let minutes = (elapsed % 3600) / 60
+        let seconds = elapsed % 60
+
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
+
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 
     private var projectName: String {
@@ -1454,16 +1478,29 @@ struct FloatNotificationView: View {
                 .fixedSize(horizontal: true, vertical: false)
             }
 
-            if floaterSize != .compact, let timeAgoText {
-                Text(timeAgoText)
-                    .font(.system(size: floaterSize.metaFontSize, weight: .medium))
-                    .monospacedDigit()
-                    .foregroundStyle(FloaterPalette.secondaryText)
-                    .lineLimit(1)
-                    .fixedSize()
+            if showsRunningDuration {
+                TimelineView(.periodic(from: lastActivity ?? .now, by: 1)) { context in
+                    if let durationText = runningDurationText(referenceDate: context.date) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "timer")
+                                .font(.system(size: floaterSize.metaFontSize - 1, weight: .bold))
+                            Text(durationText)
+                                .font(.system(size: floaterSize.metaFontSize, weight: .semibold))
+                                .monospacedDigit()
+                        }
+                        .foregroundStyle(accentColor.opacity(0.96))
+                        .padding(.horizontal, floaterSize == .compact ? 4 : 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule()
+                                .fill(accentColor.opacity(floaterSize == .compact ? 0.12 : 0.15))
+                        )
+                    }
+                }
+                .fixedSize()
             }
 
-            if floaterSize != .compact, timeAgoText != nil, modifiedFilesCount > 0 {
+            if showsActivitySection, modifiedFilesCount > 0 {
                 Circle()
                     .fill(FloaterPalette.secondaryText.opacity(0.45))
                     .frame(width: 2, height: 2)

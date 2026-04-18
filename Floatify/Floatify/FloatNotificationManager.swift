@@ -20,13 +20,32 @@ class FloatPanel: NSPanel {
 
 enum ClaudeStatusState: Equatable {
     case running
+    case committing
+    case pushing
     case idle
     case complete
+
+    var isProgressState: Bool {
+        switch self {
+        case .running, .committing, .pushing:
+            return true
+        case .idle, .complete:
+            return false
+        }
+    }
+
+    var animatesIndicator: Bool {
+        isProgressState || self == .idle
+    }
 
     var message: String {
         switch self {
         case .running:
             return "Still running"
+        case .committing:
+            return "Committing changes"
+        case .pushing:
+            return "Pushing changes"
         case .idle:
             return "Idle"
         case .complete:
@@ -38,6 +57,10 @@ enum ClaudeStatusState: Equatable {
         switch self {
         case .running:
             return FloaterPalette.running
+        case .committing:
+            return FloaterPalette.committing
+        case .pushing:
+            return FloaterPalette.pushing
         case .idle:
             return FloaterPalette.idle
         case .complete:
