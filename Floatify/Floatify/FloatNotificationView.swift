@@ -229,7 +229,7 @@ enum FloaterSize: Equatable {
     }
 
     var trailingInset: CGFloat {
-        horizontalPadding + statusRailWidth + 6
+        horizontalPadding + 6
     }
 
     var hoverTrailingInset: CGFloat {
@@ -619,6 +619,85 @@ private struct SparkleParticleAnimation: ViewModifier {
     }
 }
 
+private struct RunningSheenSweep: View {
+    let color: Color
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { context in
+            GeometryReader { geometry in
+                let size = geometry.size
+                let cycle = 2.9
+                let phase = (context.date.timeIntervalSinceReferenceDate / cycle)
+                    .truncatingRemainder(dividingBy: 1)
+                let sweepWidth = max(size.width * 0.34, 76)
+                let travel = size.width + sweepWidth + size.height * 0.95
+                let offset = travel * CGFloat(phase) - sweepWidth - size.height * 0.46
+                let intensity = 0.56 + max(0.0, 1.0 - abs(phase - 0.5) * 2.0) * 0.44
+
+                ZStack {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .clear, location: 0.00),
+                                    .init(color: color.opacity(0.08 * intensity), location: 0.18),
+                                    .init(color: .white.opacity(0.28 * intensity), location: 0.50),
+                                    .init(color: color.opacity(0.16 * intensity), location: 0.78),
+                                    .init(color: .clear, location: 1.00)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: sweepWidth, height: size.height * 2.35)
+                        .blur(radius: 13)
+                        .offset(x: offset)
+                        .rotationEffect(.degrees(-16))
+
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .clear, location: 0.00),
+                                    .init(color: .white.opacity(0.00), location: 0.30),
+                                    .init(color: .white.opacity(0.54 * intensity), location: 0.50),
+                                    .init(color: color.opacity(0.22 * intensity), location: 0.66),
+                                    .init(color: .clear, location: 1.00)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: sweepWidth * 0.24, height: size.height * 2.05)
+                        .blur(radius: 1.4)
+                        .offset(x: offset + sweepWidth * 0.07)
+                        .rotationEffect(.degrees(-16))
+
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    .white.opacity(0.02),
+                                    color.opacity(0.08 * intensity),
+                                    .white.opacity(0.02)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
+                            lineWidth: 0.8
+                        )
+                        .opacity(0.82)
+                }
+                .mask(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                )
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
 // MARK: - Wiggle Effect
 
 private struct WiggleModifier: ViewModifier {
@@ -886,7 +965,7 @@ private struct SpriteStageView: View {
             guard isIdle else { return }
             triggerIdleSparkle()
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
                 guard !Task.isCancelled else { break }
                 await MainActor.run {
                     triggerIdleSparkle()
@@ -1443,9 +1522,12 @@ struct FloatNotificationView: View {
             RoundedRectangle(cornerRadius: floaterSize.cornerRadius)
                 .strokeBorder(FloaterPalette.highlight.opacity(isHovering ? 0.14 : 0.08), lineWidth: 1)
         )
-        .overlay(alignment: .trailing) {
-            if isPersistent {
-                statusRail
+        .overlay {
+            if isPersistent, isRunning {
+                RunningSheenSweep(
+                    color: accentColor,
+                    cornerRadius: floaterSize.cornerRadius
+                )
             }
         }
         .overlay(alignment: .topTrailing) {
@@ -1661,27 +1743,6 @@ struct FloatNotificationView: View {
                     .frame(width: 1)
                     .padding(.vertical, 4)
             }
-    }
-
-    private var statusRail: some View {
-        ZStack(alignment: .trailing) {
-            Capsule()
-                .fill(accentColor.opacity(isRunning ? 0.16 : 0.08))
-                .frame(width: floaterSize.statusRailWidth + 3)
-                .blur(radius: isRunning ? 3 : 2)
-
-            Capsule()
-                .fill(accentColor.opacity(isRunning ? 0.96 : 0.78))
-                .frame(width: floaterSize.statusRailWidth)
-                .overlay(
-                    Capsule()
-                        .fill(.white.opacity(isRunning ? 0.28 : 0.12))
-                        .frame(width: 1),
-                    alignment: .leading
-                )
-        }
-        .padding(.vertical, 5)
-        .padding(.trailing, 4)
     }
 
     @ViewBuilder
