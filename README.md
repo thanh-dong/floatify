@@ -8,7 +8,7 @@ Floatify is a macOS menu bar app that shows persistent session HUDs for Claude C
 
 Website: https://floatify-app.vercel.app
 
-![Floatify Demo](website/public/demo.gif)
+website/public/demo.mp4
 
 ## Table Of Contents
 
