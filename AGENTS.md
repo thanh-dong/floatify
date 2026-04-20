@@ -126,8 +126,8 @@ Do not use `UserPromptSubmit` for `floatify --status running`. That hook can int
 - Short responses are correct unless depth is explicitly requested.
 
 ## Language Response
-- If the user asks in Vietnamese, respond in Vietnamese with proper Vietnamese diacritics.
-- This overrides the ASCII-only rule for normal Vietnamese response text.
+- If the user asks in Vietnamese, respond in Vietnamese without diacritics to minimize token usage.
+- This overrides any other normal-language preference for Vietnamese responses.
 
 ## Typography - ASCII Only
 - No em dashes (-) - use hyphens (-)
