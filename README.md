@@ -28,10 +28,11 @@ Website: https://floatify-app.vercel.app
 
 - One persistent floater per live Claude Code or Codex session
 - Project label, color status, sprite avatar, git modified file count, and last activity time
-- Theme, display style, and idle timeout in the built-in Settings window
+- Theme, display style, render mode, and idle timeout in the built-in Settings window
+- Three render modes for persistent floaters: `Super Slay`, `Slay`, and `Lame`
 - Drag to move floaters, close individual floaters, and restack them with Arrange
 - Click a floater to open its project in VS Code when the path is known
-- Temporary notifications still support all screen positions, including `menubar`, `horizontal`, and `cursorFollow`
+- Temporary notifications support `menubar` and `horizontal`, and keep legacy `cursorFollow` payloads compatible by remapping them to `bottomRight`
 - FIFO pipe IPC at `/var/tmp/floatify.pipe`
 - Non-activating `NSPanel` overlays that stay visible without stealing focus
 
@@ -47,7 +48,9 @@ Website: https://floatify-app.vercel.app
 
 - Codex can infer task state from session logs.
 - Claude session discovery is automatic, but precise running and complete state still depends on hooks.
+- `Super Slay` pushes the richest floater effects for higher-end machines. `Lame` cuts heavy repeat effects for the lowest CPU.
 - `~/.floatify/positions.json` only affects temporary notifications. It does not style persistent session floaters.
+- Legacy `cursorFollow` payloads are still accepted, but the app now renders them at `bottomRight`.
 - Persistent floater placement is drag-and-arrange today. There is no full layout editor yet.
 
 ## Installation
@@ -100,7 +103,7 @@ floatify --status complete
 More examples:
 
 ```bash
-floatify --message "Watch this" --position cursorFollow --duration 8
+floatify --message "Heads up" --position center --duration 8
 floatify --message "Menu bar alert" --position menubar --duration 5
 floatify --message "Horizontal alert" --position horizontal --duration 5
 ```
@@ -132,7 +135,7 @@ Current status behavior:
 - `running` shows the red running state
 - `idle` shows the yellow idle state
 - `complete` and `done` enter idle first, then auto-transition to green after the idle timeout
-- the default idle timeout is 15 seconds
+- the default idle timeout is 10 seconds
 
 ## Corner Positions
 
@@ -145,7 +148,6 @@ Current status behavior:
 | `center` | Screen center |
 | `menubar` | Centered below the menu bar |
 | `horizontal` | Bottom-centered horizontal stack |
-| `cursorFollow` | Tracks the cursor position |
 
 Optional JSON override for temporary notifications only:
 
@@ -161,6 +163,10 @@ Optional JSON override for temporary notifications only:
 ```
 
 Save that file to `~/.floatify/positions.json`.
+
+Legacy compatibility note:
+
+- `cursorFollow` is still accepted in old payloads, but Floatify currently remaps it to `bottomRight`
 
 ## Claude Code And Codex Integration
 
@@ -254,7 +260,7 @@ Claude hooks / floatify CLI / session monitors
 | `floatify` CLI | Sends notification and status payloads through the FIFO pipe |
 | `ClaudeSessionMonitor` | Finds live Claude sessions and project paths |
 | `CodexActivityMonitor` | Finds live Codex sessions and infers task state from session logs |
-| `SettingsView` | Controls floater theme, display style, and idle timeout |
+| `SettingsView` | Controls floater theme, display style, render mode, and idle timeout |
 
 ## Contributing
 

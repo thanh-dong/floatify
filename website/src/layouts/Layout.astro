@@ -7,7 +7,7 @@ interface Props {
 
 const {
   title,
-  description = "Floatify - A macOS menu bar app that renders animated floating notifications in screen dead zones. Sub-millisecond IPC via FIFO pipe, integrates with Claude Code hooks.",
+  description = "Floatify - A macOS menu bar app with persistent session floaters for Claude Code and Codex, plus temporary CLI notifications and selectable render modes.",
   image = "/floatify-og-image.png"
 } = Astro.props;
 
@@ -58,7 +58,7 @@ const githubUrl = "https://github.com/hieppp/floatify";
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "Floatify",
-        "description": "A macOS menu bar daemon that renders animated floating notifications in screen dead zones. Integrates with Claude Code hooks via sub-millisecond FIFO pipe IPC.",
+        "description": "A macOS menu bar app with one persistent floater per Claude Code or Codex session, temporary CLI notifications, and render modes from Super Slay to Lame.",
         "url": "https://floatify.app",
         "applicationCategory": "DeveloperTool",
         "operatingSystem": "macOS",
@@ -73,7 +73,7 @@ const githubUrl = "https://github.com/hieppp/floatify";
           "@type": "SoftwareSourceCode",
           "url": "https://github.com/hieppp/floatify"
         },
-        "keywords": ["macOS", "notification", "menu bar", "floating notifications", "developer tools", "Claude Code", "hook", "IPC", "FIFO"],
+        "keywords": ["macOS", "notification", "menu bar", "session floater", "developer tools", "Claude Code", "Codex", "IPC", "FIFO", "render mode"],
         "offers": {
           "@type": "Offer",
           "price": "0",

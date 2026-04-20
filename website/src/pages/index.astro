@@ -44,7 +44,7 @@ import Layout from '../layouts/Layout.astro';
         Per-session floaters first. Temporary alerts when you need them.
       </p>
       <p class="text-lg text-terminal-text-tertiary">
-        A macOS menu bar app for Claude Code and Codex. Each live session gets a persistent floater with project label, color status, sprite avatar, git file count, and activity time. The CLI still sends one-off notifications.
+        A macOS menu bar app for Claude Code and Codex. Each live session gets a persistent floater with project label, color status, sprite avatar, git file count, and activity time. Pick Super Slay, Slay, or Lame depending on how much visual energy and CPU budget you want.
       </p>
     </div>
 
@@ -184,8 +184,8 @@ import Layout from '../layouts/Layout.astro';
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
-        <h3 class="text-lg font-semibold text-terminal-text mb-2">Settings Window</h3>
-        <p class="text-sm text-terminal-text-secondary">Theme, display style, and idle timeout update all visible floaters right away.</p>
+        <h3 class="text-lg font-semibold text-terminal-text mb-2">Render Modes</h3>
+        <p class="text-sm text-terminal-text-secondary">Super Slay turns effects up, Slay keeps the standard animated look, and Lame strips heavy repeat effects for the lowest CPU.</p>
       </div>
       <!-- Feature 8: File Changes & Activity -->
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-6 hover:-translate-y-1 hover:border-terminal-border-hover transition-all duration-200">
@@ -224,6 +224,10 @@ import Layout from '../layouts/Layout.astro';
     </div>
     <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
+        <p class="text-xs text-terminal-text-muted font-mono mb-1">Render mode</p>
+        <p class="text-sm text-terminal-text">Super Slay, Slay, or Lame for effect intensity and CPU tradeoffs</p>
+      </div>
+      <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
         <p class="text-xs text-terminal-text-muted font-mono mb-1">Theme</p>
         <p class="text-sm text-terminal-text">Dark or light floater palette</p>
       </div>
@@ -233,16 +237,13 @@ import Layout from '../layouts/Layout.astro';
       </div>
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
         <p class="text-xs text-terminal-text-muted font-mono mb-1">Idle timeout</p>
-        <p class="text-sm text-terminal-text">Seconds before idle turns green</p>
-      </div>
-      <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
-        <p class="text-xs text-terminal-text-muted font-mono mb-1">Temp alert layout</p>
-        <p class="text-sm text-terminal-text">Optional JSON overrides for notification size and spacing</p>
+        <p class="text-sm text-terminal-text">Seconds before running turns idle, then idle turns complete</p>
       </div>
     </div>
     <div class="mt-6 rounded-lg border border-terminal-border bg-terminal-card p-5">
       <p class="text-sm text-terminal-text-secondary">Current gap: Codex can infer task state from session logs, but Claude still needs hooks for precise running and complete status.</p>
       <p class="mt-3 text-sm text-terminal-text-secondary">Current gap: persistent floater placement is drag-and-arrange today. The JSON file does not control that layout.</p>
+      <p class="mt-3 text-sm text-terminal-text-secondary">Compatibility note: old <code class="px-2 py-1 bg-terminal-surface rounded text-xs">cursorFollow</code> payloads still work, but Floatify now remaps them to <code class="px-2 py-1 bg-terminal-surface rounded text-xs">bottomRight</code>.</p>
     </div>
   </section>
 
@@ -321,9 +322,10 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
-        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Build failed" --position cursorFollow --duration 10</code></pre>
+        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Build failed" --position center --duration 10</code></pre>
       </div>
     </div>
+    <p class="mt-4 text-sm text-terminal-text-tertiary">Legacy <code class="px-2 py-1 bg-terminal-card rounded text-sm">cursorFollow</code> payloads are still accepted, but the app now renders them at <code class="px-2 py-1 bg-terminal-card rounded text-sm">bottomRight</code>.</p>
   </section>
 
   <!-- Hook Setup -->
@@ -441,7 +443,7 @@ import Layout from '../layouts/Layout.astro';
           "name": "What information does each floater show?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Each session floater displays the project folder name, status indicator (red/yellow/green), animated sprite character, count of modified files in the git repository, and time since last activity."
+            "text": "Each session floater displays the project folder name, status indicator (red/yellow/green), animated sprite character, count of modified files in the git repository, and time since last activity. The app also offers Super Slay, Slay, and Lame render modes."
           }
         },
         {
@@ -449,7 +451,7 @@ import Layout from '../layouts/Layout.astro';
           "name": "What can I configure today?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Persistent floaters are configured in the app with theme, display style, and idle timeout. Optional ~/.floatify/positions.json only changes temporary notification size and spacing. Persistent floater placement is drag-and-arrange today."
+            "text": "Persistent floaters are configured in the app with render mode, theme, display style, and idle timeout. Optional ~/.floatify/positions.json only changes temporary notification size and spacing. Persistent floater placement is drag-and-arrange today."
           }
         }
       ]
@@ -508,7 +510,7 @@ import Layout from '../layouts/Layout.astro';
           </svg>
         </summary>
         <p class="mt-3 text-sm text-terminal-text-secondary">
-          Each session floater displays the project folder name, a status indicator (red for running, yellow for idle, green for complete), an animated sprite character, the count of modified files in the git repository, and the time since last activity (e.g., Just now, 2m ago, 1h ago).
+          Each session floater displays the project folder name, a status indicator (red for running, yellow for idle, green for complete), an animated sprite character, the count of modified files in the git repository, and the time since last activity (e.g., Just now, 2m ago, 1h ago). You can also switch between Super Slay, Slay, and Lame render modes.
         </p>
       </details>
       <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
@@ -530,7 +532,7 @@ import Layout from '../layouts/Layout.astro';
           </svg>
         </summary>
         <p class="mt-3 text-sm text-terminal-text-secondary">
-          Persistent floaters are configured in the app with theme, display style, and idle timeout. Optional <code class="px-2 py-1 bg-terminal-surface rounded text-xs">~/.floatify/positions.json</code> only changes temporary notification size and spacing. Persistent floater placement is drag-and-arrange today.
+          Persistent floaters are configured in the app with render mode, theme, display style, and idle timeout. Optional <code class="px-2 py-1 bg-terminal-surface rounded text-xs">~/.floatify/positions.json</code> only changes temporary notification size and spacing. Persistent floater placement is drag-and-arrange today.
         </p>
       </details>
     </div>
