@@ -26,9 +26,12 @@ private enum ProcessInspection {
         let timestamp: Date
     }
 
+    fileprivate static let processListCacheTTL: TimeInterval = 6
+    private static let workingDirectoryCacheTTL: TimeInterval = 120
+    private static let codexSessionLogPathCacheTTL: TimeInterval = 45
     private static let commandCacheMaxEntries = 64
     private static let commandCachePruneAge: TimeInterval = 120
-    private static let modifiedFilesCacheTTL: TimeInterval = 30
+    private static let modifiedFilesCacheTTL: TimeInterval = 90
     private static let modifiedFilesCacheMaxEntries = 32
     private static var commandOutputCache: [String: CommandCacheEntry] = [:]
     private static var modifiedFilesCache: [String: ModifiedFilesCacheEntry] = [:]
@@ -85,7 +88,7 @@ private enum ProcessInspection {
         guard let output = commandOutput(
             executablePath: "/usr/sbin/lsof",
             arguments: ["-a", "-d", "cwd", "-p", "\(pid)"],
-            cacheTTL: 60
+            cacheTTL: workingDirectoryCacheTTL
         ) else {
             return nil
         }
@@ -133,7 +136,7 @@ private enum ProcessInspection {
         guard let output = commandOutput(
             executablePath: "/usr/sbin/lsof",
             arguments: ["-p", "\(pid)"],
-            cacheTTL: 20
+            cacheTTL: codexSessionLogPathCacheTTL
         ) else {
             return nil
         }
@@ -173,7 +176,7 @@ final class ClaudeSessionMonitor {
         publish(force: true)
 
         let timer = DispatchSource.makeTimerSource(queue: queue)
-        timer.schedule(deadline: .now() + 2.0, repeating: 2.0)
+        timer.schedule(deadline: .now() + 4.0, repeating: 4.0)
         timer.setEventHandler { [weak self] in
             self?.publish(force: false)
         }
@@ -200,7 +203,7 @@ final class ClaudeSessionMonitor {
         guard let output = ProcessInspection.commandOutput(
             executablePath: "/bin/ps",
             arguments: ["-Aww", "-o", "pid=,ppid=,command="],
-            cacheTTL: 3
+            cacheTTL: ProcessInspection.processListCacheTTL
         ) else {
             return []
         }
@@ -209,7 +212,7 @@ final class ClaudeSessionMonitor {
         var sessions: [SessionDescriptor] = []
 
         for rawLine in output.split(separator: "\n") {
-            let parts = rawLine.split(maxSplits: 2, omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
+            let parts = rawLine.split(maxSplits: 2, omittingEmptySubsequences: true) { $0.isWhitespace }
             guard parts.count == 3, let pid = Int(parts[0]) else {
                 continue
             }
@@ -300,7 +303,7 @@ final class CodexActivityMonitor {
         publishSessions(force: true)
 
         let timer = DispatchSource.makeTimerSource(queue: queue)
-        timer.schedule(deadline: .now() + 1.5, repeating: 1.5)
+        timer.schedule(deadline: .now() + 3.0, repeating: 3.0)
         timer.setEventHandler { [weak self] in
             self?.publishSessions(force: false)
         }
@@ -327,7 +330,7 @@ final class CodexActivityMonitor {
         guard let output = ProcessInspection.commandOutput(
             executablePath: "/bin/ps",
             arguments: ["-Aww", "-o", "pid=,ppid=,command="],
-            cacheTTL: 3
+            cacheTTL: ProcessInspection.processListCacheTTL
         ) else {
             return []
         }
@@ -336,7 +339,7 @@ final class CodexActivityMonitor {
         var vendorPIDByNodePID: [Int: Int] = [:]
 
         for rawLine in output.split(separator: "\n") {
-            let parts = rawLine.split(maxSplits: 2, omittingEmptySubsequences: true, whereSeparator: \.isWhitespace)
+            let parts = rawLine.split(maxSplits: 2, omittingEmptySubsequences: true) { $0.isWhitespace }
             guard parts.count == 3,
                   let pid = Int(parts[0]),
                   let ppid = Int(parts[1]) else {

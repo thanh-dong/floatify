@@ -114,14 +114,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupPipeListener() {
         NSLog("Floatify: Setting up pipe at %@", pipePath)
 
-        if !FileManager.default.fileExists(atPath: pipePath) {
-            let result = mkfifo(pipePath, 0o666)
-            NSLog("Floatify: mkfifo result: %d, errno: %d", result, errno)
+        if FileManager.default.fileExists(atPath: pipePath) {
+            do {
+                try FileManager.default.removeItem(atPath: pipePath)
+            } catch {
+                NSLog("Floatify: failed to remove existing pipe at %@: %@", pipePath, error.localizedDescription)
+                return
+            }
         }
 
-        try? FileManager.default.removeItem(atPath: pipePath)
+        errno = 0
         let mkresult = mkfifo(pipePath, 0o666)
-        NSLog("Floatify: mkfifo second call result: %d, errno: %d", mkresult, errno)
+        NSLog("Floatify: mkfifo result: %d, errno: %d", mkresult, errno)
+        guard mkresult == 0 else {
+            print("Failed to create pipe at \(pipePath)")
+            return
+        }
 
         let pipeFd = open(pipePath, O_RDONLY | O_NONBLOCK)
         NSLog("Floatify: pipeFd: %d, errno: %d", pipeFd, errno)

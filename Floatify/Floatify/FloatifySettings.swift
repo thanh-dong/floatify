@@ -121,10 +121,6 @@ enum FloaterSize: String, CaseIterable, Equatable {
         }
     }
 
-    var isSingleLine: Bool {
-        false
-    }
-
     var panelWidth: CGFloat {
         switch self {
         case .compact: return 210

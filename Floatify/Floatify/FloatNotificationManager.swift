@@ -116,6 +116,7 @@ class FloatNotificationManager {
     private let maxPanels = 8
     private let maxHorizontalPanels = 5
     private let horizontalStackOffset: CGFloat = 8
+    private let cursorFollowRefreshInterval: TimeInterval = 1.0 / 12.0
     private let floaterPanelSpacing: CGFloat = 6
     private let floaterPanelOriginKey = "FloaterPanelOrigin"
     private let floaterPanelCollapsedKey = "FloaterPanelCollapsed"
@@ -663,7 +664,7 @@ class FloatNotificationManager {
 
     private func startCursorTracking(for panel: FloatPanel) {
         var lastOrigin = panel.frame.origin
-        let timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { [weak panel] timer in
+        let timer = Timer.scheduledTimer(withTimeInterval: cursorFollowRefreshInterval, repeats: true) { [weak panel] timer in
             guard let panel = panel, panel.isVisible else {
                 timer.invalidate()
                 return
@@ -707,11 +708,24 @@ class FloatNotificationManager {
     }
 
     private func repositionPanels() {
-        for (index, panel) in panels.enumerated() {
+        var nextVerticalIndexByCorner: [Corner: Int] = [:]
+
+        let horizontalPanels = panels.filter { $0.notificationCorner == .horizontal }
+        for (index, panel) in horizontalPanels.enumerated() {
+            let horizontalIndex = index + 1
+            panel.horizontalIndex = horizontalIndex
+            let offsetX = CGFloat(horizontalIndex) * horizontalStackOffset
+            panel.setFrameOrigin(horizontalOrigin(size: panel.frame.size, offset: offsetX))
+        }
+
+        for panel in panels where panel.notificationCorner != .horizontal && panel.notificationCorner != .cursorFollow {
             let config = PositionConfigManager.shared.config(for: panel.notificationCorner)
-            let offsetY = CGFloat(index) * config.stackOffset
+            let verticalIndex = nextVerticalIndexByCorner[panel.notificationCorner, default: 0]
+            nextVerticalIndexByCorner[panel.notificationCorner] = verticalIndex + 1
+            let offsetY = CGFloat(verticalIndex) * config.stackOffset
             let size = panel.frame.size
             let newOrigin = cornerOrigin(corner: panel.notificationCorner, size: size, padding: config.margin, stackOffset: offsetY)
+            panel.horizontalIndex = 0
             panel.setFrameOrigin(newOrigin)
         }
     }

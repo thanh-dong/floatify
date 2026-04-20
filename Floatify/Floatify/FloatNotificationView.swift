@@ -120,15 +120,38 @@ struct SpriteSheetMetadata: Hashable {
     }
 }
 
+private final class CachedCGImageBox: NSObject {
+    let image: CGImage
+
+    init(_ image: CGImage) {
+        self.image = image
+    }
+}
+
 private enum AvatarImageCache {
-    static var spriteSheets: [String: CGImage] = [:]
-    static var croppedFrames: [String: NSImage] = [:]
-    static var staticImages: [String: NSImage] = [:]
+    private static let spriteSheets: NSCache<NSString, CachedCGImageBox> = {
+        let cache = NSCache<NSString, CachedCGImageBox>()
+        cache.countLimit = 12
+        return cache
+    }()
+
+    private static let croppedFrames: NSCache<NSString, NSImage> = {
+        let cache = NSCache<NSString, NSImage>()
+        cache.countLimit = 96
+        return cache
+    }()
+
+    private static let staticImages: NSCache<NSString, NSImage> = {
+        let cache = NSCache<NSString, NSImage>()
+        cache.countLimit = 24
+        return cache
+    }()
 
     static func cgImage(for source: FloaterAvatarImageSource) -> CGImage? {
         let key = cacheKey(for: source)
-        if let cached = spriteSheets[key] {
-            return cached
+        let cacheKey = key as NSString
+        if let cached = spriteSheets.object(forKey: cacheKey) {
+            return cached.image
         }
 
         guard let url = url(for: source),
@@ -137,13 +160,14 @@ private enum AvatarImageCache {
             return nil
         }
 
-        spriteSheets[key] = image
+        spriteSheets.setObject(CachedCGImageBox(image), forKey: cacheKey)
         return image
     }
 
     static func staticImage(for source: FloaterAvatarImageSource) -> NSImage? {
         let key = cacheKey(for: source)
-        if let cached = staticImages[key] {
+        let cacheKey = key as NSString
+        if let cached = staticImages.object(forKey: cacheKey) {
             return cached
         }
 
@@ -152,13 +176,14 @@ private enum AvatarImageCache {
             return nil
         }
 
-        staticImages[key] = image
+        staticImages.setObject(image, forKey: cacheKey)
         return image
     }
 
     static func frameImage(for rect: CGRect, source: FloaterAvatarImageSource) -> NSImage? {
         let key = "\(cacheKey(for: source)):\(Int(rect.origin.x)):\(Int(rect.origin.y)):\(Int(rect.size.width)):\(Int(rect.size.height))"
-        if let cached = croppedFrames[key] {
+        let cacheKey = key as NSString
+        if let cached = croppedFrames.object(forKey: cacheKey) {
             return cached
         }
 
@@ -168,7 +193,7 @@ private enum AvatarImageCache {
         }
 
         let image = NSImage(cgImage: cropped, size: rect.size)
-        croppedFrames[key] = image
+        croppedFrames.setObject(image, forKey: cacheKey)
         return image
     }
 
