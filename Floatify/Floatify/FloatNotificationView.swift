@@ -697,11 +697,18 @@ private struct CelebrateRingBurst: View {
     }
 
     private func animateRing() {
+        let duration: TimeInterval = 0.58
+
         ringScale = 0.76
         ringOpacity = 0.84
 
-        withAnimation(.easeOut(duration: 0.58)) {
+        withAnimation(.easeOut(duration: duration)) {
             ringScale = 1.38
+            ringOpacity = 0
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            ringScale = 0.76
             ringOpacity = 0
         }
     }
