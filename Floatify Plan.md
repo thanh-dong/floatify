@@ -1,5 +1,7 @@
 # Floatify - macOS Floating Notification App for Claude Code
 
+> Historical note: This design doc describes the removed temporary-notification and corner-position architecture. Current Floatify only supports persistent session floaters and CLI status updates.
+
 A macOS menu bar daemon that renders animated floating notifications at configurable screen positions, triggered by Claude Code hooks. Features Lottie animations, sound effects, cursor-following mode, and per-position layout config.
 
 ---

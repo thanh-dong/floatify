@@ -4,13 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Floatify** - A macOS menu bar daemon that renders two overlay types:
-- temporary notifications sent from the CLI
-- persistent per-session floaters for Claude Code and Codex
+**Floatify** - A macOS menu bar daemon that renders persistent per-session floaters for Claude Code and Codex.
 
 Two components:
 - **Floatify.app** - Background GUI app (LSUIElement, no Dock icon) owning floating `NSPanel` overlays
-- **floatify CLI** - Sends notification and status payloads to the app via FIFO pipe IPC
+- **floatify CLI** - Sends status payloads to the app via FIFO pipe IPC
 
 ## Build Commands
 
@@ -38,7 +36,7 @@ xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Debug bui
 ## Architecture
 
 ```
-Claude hooks / floatify CLI / session monitors -> FIFO pipe IPC + process scan -> Floatify.app -> temporary and persistent NSPanel overlays
+Claude hooks / floatify CLI / session monitors -> FIFO pipe IPC + process scan -> Floatify.app -> persistent NSPanel floaters
 ```
 
 **Key technical decisions:**
@@ -60,9 +58,8 @@ Floatify/
 ├── Floatify.xcodeproj/     # Xcode project
 ├── Floatify/               # macOS App target
 │   ├── AppDelegate.swift   # FIFO pipe server + menu bar + symlink install
-│   ├── FloatNotificationManager.swift  # NSPanel factory + temporary/persistent floater management
-│   ├── FloatNotificationView.swift      # SwiftUI temporary notification and persistent HUD view
-│   ├── Corner.swift        # Corner enum
+│   ├── FloaterPanelManager.swift        # NSPanel factory + persistent floater management
+│   ├── FloaterStatusView.swift          # SwiftUI persistent floater views
 │   ├── main.swift          # App entry point
 │   ├── cli/                # Command Line Tool target
 │   │   └── main.swift     # Argument parser + FIFO pipe client + session inference
@@ -72,16 +69,6 @@ Floatify/
 ## IPC Protocol
 
 **Pipe path:** `/var/tmp/floatify.pipe`
-
-**Notification payload:**
-```json
-{
-  "message": "Task complete!",
-  "corner": "bottomRight",
-  "duration": 6,
-  "project": "floatify"
-}
-```
 
 **Status payload:**
 ```json
@@ -93,7 +80,7 @@ Floatify/
 }
 ```
 
-`status` accepts `running`, `complete`, `done`, or `idle`.
+`status` accepts `running`, `complete`, or `idle`.
 
 Status flow with auto-transition:
 - `running` (red) -> `idle` (yellow) after 15s -> `complete` (green)

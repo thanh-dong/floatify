@@ -32,19 +32,8 @@ private struct FloatifyMenuBarContent: View {
 
         Divider()
 
-        Button("Test Notification") {
-            for corner in Corner.allCases {
-                FloatNotificationManager.shared.show(
-                    message: "Test: \(corner.rawValue)",
-                    corner: corner,
-                    duration: 5,
-                    project: "Test"
-                )
-            }
-        }
-
         Button("Arrange") {
-            FloatNotificationManager.shared.arrangePersistentStatuses()
+            FloaterPanelManager.shared.arrangePersistentStatuses()
         }
 
         Divider()

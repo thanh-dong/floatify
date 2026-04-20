@@ -4,7 +4,7 @@
 [![Swift 5.9](https://img.shields.io/badge/Swift-5.9-f97316?style=flat-square)](https://github.com/HiepPP/floatify)
 [![Website](https://img.shields.io/badge/Website-floatify--app.vercel.app-0ea5e9?style=flat-square)](https://floatify-app.vercel.app)
 
-Floatify is a macOS menu bar app that shows persistent session HUDs for Claude Code and Codex, plus temporary CLI notifications.
+Floatify is a macOS menu bar app that shows persistent session HUDs for Claude Code and Codex.
 
 Website: https://floatify-app.vercel.app
 
@@ -18,7 +18,6 @@ Website: https://floatify-app.vercel.app
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [CLI Reference](#cli-reference)
-- [Corner Positions](#corner-positions)
 - [Claude Code And Codex Integration](#claude-code-and-codex-integration)
 - [Architecture](#architecture)
 - [Contributing](#contributing)
@@ -32,7 +31,6 @@ Website: https://floatify-app.vercel.app
 - Three render modes for persistent floaters: `Super Slay`, `Slay`, and `Lame`
 - Drag to move floaters, close individual floaters, and restack them with Arrange
 - Click a floater to open its project in VS Code when the path is known
-- Temporary notifications support `menubar` and `horizontal`, and keep legacy `cursorFollow` payloads compatible by remapping them to `bottomRight`
 - FIFO pipe IPC at `/var/tmp/floatify.pipe`
 - Non-activating `NSPanel` overlays that stay visible without stealing focus
 
@@ -49,8 +47,6 @@ Website: https://floatify-app.vercel.app
 - Codex can infer task state from session logs.
 - Claude session discovery is automatic, but precise running and complete state still depends on hooks.
 - `Super Slay` pushes the richest floater effects for higher-end machines. `Lame` cuts heavy repeat effects for the lowest CPU.
-- `~/.floatify/positions.json` only affects temporary notifications. It does not style persistent session floaters.
-- Legacy `cursorFollow` payloads are still accepted, but the app now renders them at `bottomRight`.
 - Persistent floater placement is drag-and-arrange today. There is no full layout editor yet.
 
 ## Installation
@@ -87,12 +83,6 @@ xcodebuild -project Floatify.xcodeproj -scheme floatify -configuration Debug bui
 
 ## Quick Start
 
-Temporary notification:
-
-```bash
-floatify --message "Deploy done!" --position bottomRight --duration 6
-```
-
 Session status updates:
 
 ```bash
@@ -103,9 +93,9 @@ floatify --status complete
 More examples:
 
 ```bash
-floatify --message "Heads up" --position center --duration 8
-floatify --message "Menu bar alert" --position menubar --duration 5
-floatify --message "Horizontal alert" --position horizontal --duration 5
+floatify --project floatify
+floatify --status running
+floatify --status complete
 ```
 
 ## CLI Reference
@@ -116,11 +106,7 @@ floatify [options]
 
 | Flag | Meaning | Default |
 | --- | --- | --- |
-| `--message` | Temporary notification text | `Task complete!` |
-| `--position` or `--corner` | Notification position | `bottomRight` |
-| `--duration` | Auto-dismiss seconds for temporary notifications | `6` |
 | `--project` | Project label in the payload | Current folder name |
-| `--effect` | Notification entry effect override | Position default |
 | `--status` | Session status update | Not set |
 
 Status values:
@@ -128,45 +114,13 @@ Status values:
 - `running`
 - `idle`
 - `complete`
-- `done`
 
 Current status behavior:
 
 - `running` shows the red running state
 - `idle` shows the yellow idle state
-- `complete` and `done` enter idle first, then auto-transition to green after the idle timeout
+- `complete` enters idle first, then auto-transitions to green after the idle timeout
 - the default idle timeout is 10 seconds
-
-## Corner Positions
-
-| Position | Behavior |
-| --- | --- |
-| `bottomLeft` | Bottom-left corner |
-| `bottomRight` | Bottom-right corner |
-| `topLeft` | Top-left corner |
-| `topRight` | Top-right corner |
-| `center` | Screen center |
-| `menubar` | Centered below the menu bar |
-| `horizontal` | Bottom-centered horizontal stack |
-
-Optional JSON override for temporary notifications only:
-
-```json
-{
-  "bottomRight": {
-    "margin": 20,
-    "width": 320,
-    "height": 80,
-    "stackOffset": 6
-  }
-}
-```
-
-Save that file to `~/.floatify/positions.json`.
-
-Legacy compatibility note:
-
-- `cursorFollow` is still accepted in old payloads, but Floatify currently remaps it to `bottomRight`
 
 ## Claude Code And Codex Integration
 

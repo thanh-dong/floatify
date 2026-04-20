@@ -201,27 +201,7 @@ import Layout from '../layouts/Layout.astro';
   <!-- Settings Section -->
   <section id="configuration" aria-labelledby="config-heading" class="py-20 px-6 max-w-4xl mx-auto">
     <h2 id="config-heading" class="text-xs text-terminal-text-tertiary tracking-wider uppercase mb-8">Settings And Gaps</h2>
-    <p class="text-terminal-text-secondary mb-6">Persistent session floaters are configured in the app. <code class="px-2 py-1 bg-terminal-card rounded text-sm">positions.json</code> is still supported, but only for temporary notifications.</p>
-    <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
-      <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
-        <span class="text-xs text-terminal-text-muted font-mono">~/.floatify/positions.json</span>
-        <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
-      </div>
-      <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>{`{
-  "bottomRight": {
-    "margin": 20,
-    "width": 320,
-    "height": 80,
-    "stackOffset": 6
-  },
-  "center": {
-    "margin": 0,
-    "width": 280,
-    "height": 68,
-    "stackOffset": 4
-  }
-}`}</code></pre>
-    </div>
+    <p class="text-terminal-text-secondary mb-6">Persistent session floaters are configured in the app. Layout is drag-and-arrange, and status updates come from the CLI or live session detection.</p>
     <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-terminal-card border border-terminal-border rounded-lg p-4">
         <p class="text-xs text-terminal-text-muted font-mono mb-1">Render mode</p>
@@ -242,8 +222,7 @@ import Layout from '../layouts/Layout.astro';
     </div>
     <div class="mt-6 rounded-lg border border-terminal-border bg-terminal-card p-5">
       <p class="text-sm text-terminal-text-secondary">Current gap: Codex can infer task state from session logs, but Claude still needs hooks for precise running and complete status.</p>
-      <p class="mt-3 text-sm text-terminal-text-secondary">Current gap: persistent floater placement is drag-and-arrange today. The JSON file does not control that layout.</p>
-      <p class="mt-3 text-sm text-terminal-text-secondary">Compatibility note: old <code class="px-2 py-1 bg-terminal-surface rounded text-xs">cursorFollow</code> payloads still work, but Floatify now remaps them to <code class="px-2 py-1 bg-terminal-surface rounded text-xs">bottomRight</code>.</p>
+      <p class="mt-3 text-sm text-terminal-text-secondary">Current gap: persistent floater placement is drag-and-arrange today. There is no external position JSON anymore.</p>
     </div>
   </section>
 
@@ -263,7 +242,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="flex-1 flex flex-col items-center text-center relative">
         <div class="w-12 h-12 rounded-full bg-terminal-surface text-terminal-text flex items-center justify-center text-xl font-bold mb-4 z-10">2</div>
         <h3 class="text-lg font-semibold text-terminal-text mb-2">CLI Command</h3>
-        <p class="text-sm text-terminal-text-secondary">floatify sends status or notification payloads through the FIFO pipe.</p>
+        <p class="text-sm text-terminal-text-secondary">floatify sends status payloads through the FIFO pipe.</p>
         <!-- Arrow 2 (hidden on mobile, shown between steps on desktop) -->
         <div class="hidden md:block absolute top-6 right-0 translate-x-1/2 w-8 h-0.5 bg-terminal-border"></div>
       </div>
@@ -289,7 +268,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
-        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Task complete!"</code></pre>
+        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --status running</code></pre>
       </div>
       <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
         <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
@@ -300,7 +279,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
-        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --status running</code></pre>
+        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --status idle</code></pre>
       </div>
       <div class="relative rounded-lg overflow-hidden border border-terminal-border bg-terminal-card">
         <div class="flex items-center justify-between px-4 py-2 border-b border-terminal-border" style="background: #2e3440;">
@@ -322,10 +301,10 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <button onclick="copyCode(this)" class="text-xs text-terminal-text-secondary hover:text-terminal-text px-2 py-1 rounded bg-terminal-surface hover:bg-terminal-border-hover transition-colors">Copy</button>
         </div>
-        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --message "Build failed" --position center --duration 10</code></pre>
+        <pre class="p-4 text-sm font-mono text-terminal-text overflow-x-auto"><code>floatify --project floatify --status complete</code></pre>
       </div>
     </div>
-    <p class="mt-4 text-sm text-terminal-text-tertiary">Legacy <code class="px-2 py-1 bg-terminal-card rounded text-sm">cursorFollow</code> payloads are still accepted, but the app now renders them at <code class="px-2 py-1 bg-terminal-card rounded text-sm">bottomRight</code>.</p>
+    <p class="mt-4 text-sm text-terminal-text-tertiary">CLI support is intentionally narrow now: project and status only.</p>
   </section>
 
   <!-- Hook Setup -->
@@ -403,7 +382,7 @@ import Layout from '../layouts/Layout.astro';
           "name": "What is Floatify?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Floatify is a macOS menu bar app that shows one persistent floater per Claude Code or Codex session, plus temporary notifications from the CLI. It uses FIFO pipe IPC for commands and process detection for live session tracking. Each floater displays project name, status color, git file changes count, and time since last activity."
+            "text": "Floatify is a macOS menu bar app that shows one persistent floater per Claude Code or Codex session. It uses FIFO pipe IPC for status commands and process detection for live session tracking. Each floater displays project name, status color, git file changes count, and time since last activity."
           }
         },
         {
@@ -451,7 +430,7 @@ import Layout from '../layouts/Layout.astro';
           "name": "What can I configure today?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Persistent floaters are configured in the app with render mode, theme, display style, and idle timeout. Optional ~/.floatify/positions.json only changes temporary notification size and spacing. Persistent floater placement is drag-and-arrange today."
+            "text": "Persistent floaters are configured in the app with render mode, theme, display style, and idle timeout. Persistent floater placement is drag-and-arrange today."
           }
         }
       ]
@@ -466,7 +445,7 @@ import Layout from '../layouts/Layout.astro';
           </svg>
         </summary>
         <p class="mt-3 text-sm text-terminal-text-secondary">
-          Floatify is a macOS menu bar app that shows one persistent floater per Claude Code or Codex session, plus temporary notifications from the CLI. It uses FIFO pipe IPC for commands and process detection for live session tracking. Each floater displays project name, status color, git file changes count, and time since last activity.
+          Floatify is a macOS menu bar app that shows one persistent floater per Claude Code or Codex session. It uses FIFO pipe IPC for status commands and process detection for live session tracking. Each floater displays project name, status color, git file changes count, and time since last activity.
         </p>
       </details>
       <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
@@ -477,7 +456,7 @@ import Layout from '../layouts/Layout.astro';
           </svg>
         </summary>
         <p class="mt-3 text-sm text-terminal-text-secondary">
-          No. Floatify uses macOS non-activating panels (NSPanel with .nonactivatingPanel style) so notifications never steal keyboard or mouse focus from your current work.
+          No. Floatify uses macOS non-activating panels (NSPanel with .nonactivatingPanel style) so floaters never steal keyboard or mouse focus from your current work.
         </p>
       </details>
       <details class="group bg-terminal-card border border-terminal-border rounded-lg p-4">
@@ -532,7 +511,7 @@ import Layout from '../layouts/Layout.astro';
           </svg>
         </summary>
         <p class="mt-3 text-sm text-terminal-text-secondary">
-          Persistent floaters are configured in the app with render mode, theme, display style, and idle timeout. Optional <code class="px-2 py-1 bg-terminal-surface rounded text-xs">~/.floatify/positions.json</code> only changes temporary notification size and spacing. Persistent floater placement is drag-and-arrange today.
+          Persistent floaters are configured in the app with render mode, theme, display style, and idle timeout. Persistent floater placement is drag-and-arrange today.
         </p>
       </details>
     </div>
@@ -620,7 +599,7 @@ import Layout from '../layouts/Layout.astro';
           <div class="flex-1 min-w-0">
             <p class="text-terminal-text font-mono mb-2">Use the CLI</p>
             <div class="p-3 bg-[#2e3440] border border-terminal-border rounded font-mono text-sm">
-              <p class="text-terminal-text-muted">After install, send temporary alerts with <span class="text-terminal-text-secondary">floatify --message "Task complete!"</span> or session updates with <span class="text-terminal-text-secondary">floatify --status running</span>.</p>
+              <p class="text-terminal-text-muted">After install, send session updates with <span class="text-terminal-text-secondary">floatify --status running</span> or <span class="text-terminal-text-secondary">floatify --project floatify --status complete</span>.</p>
             </div>
           </div>
         </li>

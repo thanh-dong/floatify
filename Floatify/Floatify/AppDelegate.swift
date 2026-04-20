@@ -17,7 +17,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupPipeListener()
         installCLIToolIfNeeded()
         SoundManager.shared.loadSounds()
-        CursorTracker.shared.startTracking()
         setupPersistentStatusFloater()
     }
 
@@ -61,7 +60,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
         }
 
-        FloatNotificationManager.shared.showPersistentStatuses(items)
+        FloaterPanelManager.shared.showPersistentStatuses(items)
     }
 
     private func activeSessionsByID() -> [String: SessionDescriptor] {
@@ -165,9 +164,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
            let state = claudeStatusState(from: statusString) {
             applyStatusUpdate(state: state, payload: payload)
         }
-
-        guard payload.message != nil else { return }
-        showNotification(payload)
     }
 
     private func applyStatusUpdate(state: ClaudeStatusState, payload: FloatifyPipePayload) {
@@ -204,28 +200,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func showNotification(_ payload: FloatifyPipePayload) {
-        DispatchQueue.main.async {
-            FloatNotificationManager.shared.show(
-                message: payload.notificationMessage,
-                corner: payload.notificationCorner,
-                duration: payload.notificationDuration,
-                project: payload.notificationProject
-            )
-        }
-    }
-
     private func claudeStatusState(from rawValue: String) -> ClaudeStatusState? {
         switch rawValue.lowercased() {
         case "running":
             return .running
-        case "commit", "committing":
-            return .committing
-        case "push", "pushing":
-            return .pushing
         case "idle":
             return .idle
-        case "complete", "done":
+        case "complete":
             return .complete
         default:
             return nil

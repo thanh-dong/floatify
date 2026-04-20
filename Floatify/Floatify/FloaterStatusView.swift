@@ -12,8 +12,6 @@ private struct FloaterThemePalette {
     let strokeSoft: Color
     let highlight: Color
     let running: Color
-    let committing: Color
-    let pushing: Color
     let idle: Color
     let complete: Color
     let warning: Color
@@ -34,8 +32,6 @@ enum FloaterPalette {
                 strokeSoft: Color(red: 0.280, green: 0.330, blue: 0.430),
                 highlight: Color(red: 0.980, green: 0.990, blue: 1.000),
                 running: Color(red: 0.965, green: 0.470, blue: 0.410),
-                committing: Color(red: 0.357, green: 0.561, blue: 0.965),
-                pushing: Color(red: 0.176, green: 0.745, blue: 0.671),
                 idle: Color(red: 0.915, green: 0.705, blue: 0.320),
                 complete: Color(red: 0.330, green: 0.845, blue: 0.645),
                 warning: Color(red: 0.948, green: 0.598, blue: 0.360),
@@ -52,8 +48,6 @@ enum FloaterPalette {
                 strokeSoft: Color(red: 0.835, green: 0.867, blue: 0.922),
                 highlight: Color(red: 1.000, green: 1.000, blue: 1.000),
                 running: Color(red: 0.847, green: 0.302, blue: 0.255),
-                committing: Color(red: 0.200, green: 0.435, blue: 0.890),
-                pushing: Color(red: 0.082, green: 0.596, blue: 0.486),
                 idle: Color(red: 0.773, green: 0.541, blue: 0.082),
                 complete: Color(red: 0.133, green: 0.541, blue: 0.384),
                 warning: Color(red: 0.851, green: 0.467, blue: 0.227),
@@ -71,8 +65,6 @@ enum FloaterPalette {
     static var strokeSoft: Color { palette.strokeSoft }
     static var highlight: Color { palette.highlight }
     static var running: Color { palette.running }
-    static var committing: Color { palette.committing }
-    static var pushing: Color { palette.pushing }
     static var idle: Color { palette.idle }
     static var complete: Color { palette.complete }
     static var warning: Color { palette.warning }
@@ -1889,7 +1881,7 @@ private struct SlayStageRendererRepresentable: NSViewRepresentable {
             "\(showsSecondaryOrbit)",
             "\(effectTuning.extraCompletionRays)",
             "\(effectTuning.extraCompletionOrbs)",
-            state == .complete ? (completeTrigger?.uuidString ?? "done") : "steady"
+            state == .complete ? (completeTrigger?.uuidString ?? "complete") : "steady"
         ].joined(separator: ":")
         let avatarSignature = [
             avatar?.id ?? "none",
@@ -1899,7 +1891,7 @@ private struct SlayStageRendererRepresentable: NSViewRepresentable {
         let avatarEffectSignature = [
             state == .running ? "running" : (state == .complete ? "complete" : "idle"),
             renderMode.rawValue,
-            state == .complete ? (avatarPulseTrigger?.uuidString ?? completeTrigger?.uuidString ?? "done") : "steady"
+            state == .complete ? (avatarPulseTrigger?.uuidString ?? completeTrigger?.uuidString ?? "complete") : "steady"
         ].joined(separator: ":")
         let avatarPayload = shouldAnimateAvatar ? avatarFrames : Array(avatarFrames.prefix(1))
 
@@ -2887,10 +2879,9 @@ struct FloaterPanelView: View {
             if !isCollapsed {
                 VStack(alignment: .leading, spacing: spacing) {
                     ForEach(items) { item in
-                        FloatNotificationView(
+                        FloaterStatusView(
                             message: item.item.state.message,
                             project: item.item.project,
-                            corner: .bottomRight,
                             effect: item.effect,
                             onTap: { onItemTap(item.item) },
                             onClose: { onItemClose(item.item) },
@@ -2930,12 +2921,11 @@ struct FloaterPanelView: View {
     }
 }
 
-// MARK: - FloatNotificationView
+// MARK: - FloaterStatusView
 
-struct FloatNotificationView: View {
+struct FloaterStatusView: View {
     let message: String
     var project: String?
-    var corner: Corner = .bottomRight
     var effect: String?
     var sound: String?
     var onTap: (() -> Void)?
@@ -2971,7 +2961,6 @@ struct FloatNotificationView: View {
     init(
         message: String,
         project: String? = nil,
-        corner: Corner = .bottomRight,
         effect: String? = nil,
         sound: String? = nil,
         onTap: (() -> Void)? = nil,
@@ -2993,7 +2982,6 @@ struct FloatNotificationView: View {
     ) {
         self.message = message
         self.project = project
-        self.corner = corner
         self.effect = effect
         self.sound = sound
         self.onTap = onTap
@@ -3023,7 +3011,7 @@ struct FloatNotificationView: View {
     }
 
     private var effectiveSound: String? {
-        sound ?? corner.defaultSound
+        sound
     }
 
     private var isRunning: Bool {
@@ -3055,7 +3043,7 @@ struct FloatNotificationView: View {
     }
 
     private var showsParticleTrail: Bool {
-        corner == .cursorFollow && renderMode != .lame && (effectTuning.showsParticleTrail ?? true)
+        renderMode != .lame && (effectTuning.showsParticleTrail ?? true)
     }
 
     private func scaledGlow(_ value: Double) -> Double {
@@ -3069,7 +3057,7 @@ struct FloatNotificationView: View {
     private var avatarBackgroundPrimaryOpacity: Double {
         guard let statusState else { return 0.18 }
         switch statusState {
-        case .running, .committing, .pushing: return 0.42
+        case .running: return 0.42
         case .idle: return 0.34
         case .complete: return 0.30
         }
@@ -3078,7 +3066,7 @@ struct FloatNotificationView: View {
     private var avatarBackgroundSecondaryOpacity: Double {
         guard let statusState else { return 0.08 }
         switch statusState {
-        case .running, .committing, .pushing: return 0.24
+        case .running: return 0.24
         case .idle: return 0.20
         case .complete: return 0.18
         }
@@ -3087,7 +3075,7 @@ struct FloatNotificationView: View {
     private var avatarBackgroundBorderOpacity: Double {
         guard let statusState else { return 0.08 }
         switch statusState {
-        case .running, .committing, .pushing: return 0.18
+        case .running: return 0.18
         case .idle: return 0.16
         case .complete: return 0.14
         }
@@ -3097,10 +3085,8 @@ struct FloatNotificationView: View {
         guard let state = statusState else { return nil }
         switch state {
         case .running: return "Running"
-        case .committing: return "Commit"
-        case .pushing: return "Push"
         case .idle: return "Idle"
-        case .complete: return "Done"
+        case .complete: return "Complete"
         }
     }
 
@@ -3152,15 +3138,10 @@ struct FloatNotificationView: View {
             }
 
             panelBackground
-
-            if isPersistent {
-                persistentContent
-            } else {
-                temporaryContent
-            }
+            persistentContent
         }
         .frame(
-            width: isPersistent ? floaterSize.persistentPanelWidth : floaterSize.panelWidth,
+            width: floaterSize.persistentPanelWidth,
             height: floaterSize.rowHeight
         )
         .clipShape(RoundedRectangle(cornerRadius: floaterSize.cornerRadius))
@@ -3454,40 +3435,6 @@ struct FloatNotificationView: View {
                 endPoint: .bottomTrailing
             )
         )
-    }
-
-    @ViewBuilder
-    private var temporaryContent: some View {
-        HStack(spacing: 10) {
-            // Sprite avatar (or duck fallback) for personality
-            AvatarArtView(
-                avatar: avatar,
-                isAnimating: animatesStatus,
-                size: floaterSize.spriteSize - 4
-            )
-            .bobbing(isEnabled: animatesStatus)
-            .floatDrift(isEnabled: animatesStatus)
-
-            Text(message)
-                .font(.system(size: floaterSize.projectFontSize + 0.5, weight: .medium))
-                .tracking(-0.1)
-                .foregroundStyle(FloaterPalette.primaryText)
-                .lineLimit(2)
-
-            Spacer(minLength: 4)
-
-            if let project {
-                Text(project)
-                    .font(.system(size: floaterSize.metaFontSize, weight: .semibold))
-                    .tracking(-0.1)
-                    .foregroundStyle(FloaterPalette.secondaryText)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 2.5)
-                    .background(Capsule().fill(FloaterPalette.chipFill.opacity(0.88)))
-                    .overlay(Capsule().strokeBorder(FloaterPalette.strokeSoft.opacity(0.42), lineWidth: 0.5))
-            }
-        }
-        .padding(.horizontal, floaterSize.horizontalPadding)
     }
 
     private var closeButton: some View {

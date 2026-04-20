@@ -3,16 +3,8 @@ import Darwin
 
 // MARK: - Argument Parsing
 
-var message = "Task complete!"
-var corner = "bottomRight"
-var duration = "6"
 var project = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).lastPathComponent
-var effect: String? = nil
 var status: String? = nil
-var didSetMessage = false
-var didSetCorner = false
-var didSetDuration = false
-var didSetProject = false
 
 let args = Array(CommandLine.arguments.dropFirst())
 var index = 0
@@ -22,20 +14,8 @@ while index < args.count {
     guard index < args.count else { break }
 
     switch flag {
-    case "--message":
-        message = args[index]
-        didSetMessage = true
-    case "--position", "--corner":
-        corner = args[index]
-        didSetCorner = true
-    case "--duration":
-        duration = args[index]
-        didSetDuration = true
     case "--project":
         project = args[index]
-        didSetProject = true
-    case "--effect":
-        effect = args[index]
     case "--status":
         status = args[index]
     default:
@@ -44,25 +24,8 @@ while index < args.count {
     index += 1
 }
 
-// Validate corner
-if corner == "cursorFollow" {
-    corner = "bottomRight"
-}
-
-let validCorners = ["bottomLeft", "bottomRight", "topLeft", "topRight", "center", "menubar", "horizontal"]
-guard validCorners.contains(corner) else {
-    fputs("Invalid corner '\(corner)'. Use: \(validCorners.joined(separator: ", ")).\n", stderr)
-    exit(1)
-}
-
-// Validate duration
-guard Double(duration) != nil else {
-    fputs("Invalid duration '\(duration)'. Must be a number.\n", stderr)
-    exit(1)
-}
-
 if let status {
-    let validStatuses = ["running", "commit", "committing", "push", "pushing", "complete", "done", "idle"]
+    let validStatuses = ["running", "complete", "idle"]
     guard validStatuses.contains(status.lowercased()) else {
         fputs("Invalid status '\(status)'. Use: \(validStatuses.joined(separator: ", ")).\n", stderr)
         exit(1)
@@ -141,17 +104,8 @@ if let status {
     }
 }
 
-let shouldSendNotification = didSetMessage || didSetCorner || didSetDuration || didSetProject || effect != nil || status == nil
-
-if shouldSendNotification {
-    payload["message"] = message
-    payload["corner"] = corner
-    payload["duration"] = Double(duration) ?? 6.0
-    payload["project"] = project
-}
-
-if let effect = effect {
-    payload["effect"] = effect
+guard !payload.isEmpty else {
+    exit(0)
 }
 
 guard let data = try? JSONSerialization.data(withJSONObject: payload) else {
@@ -176,9 +130,7 @@ let bytesWritten = data.withUnsafeBytes { buffer -> Int in
 close(pipeFd)
 
 if bytesWritten == data.count {
-    if shouldSendNotification {
-        print("🦆 Sent: \(message)")
-    }
+    print("🦆 Sent status: \(status ?? "unknown")")
     exit(0)
 } else {
     fputs("Failed to write to pipe\n", stderr)
